@@ -22,7 +22,7 @@ const { entries } = Object;
  * @typedef {{
  *   localAccount: OrchestrationAccount<{ chainId: 'agoric' }>;
  *   localChainAddress: ChainAddress;
- *   osmoAccount: OrchestrationAccount<{ chainId: 'osmosis' }>;
+ *   osmoAccount: OrchestrationAccount<{ chainId: 'osmosis-1' }>;
  *   osmoChainAddress: ChainAddress;
  *   assets: any;
  *   remoteChainInfo: any;
@@ -32,6 +32,7 @@ const { entries } = Object;
 const StakeManagementI = M.interface('holder', {
   getLocalAddress: M.call().returns(M.any()),
   send: M.call(M.any(), M.any()).returns(M.any()),
+  stakeOnOsmosis: M.call(M.any(), M.any()).returns(M.any()),
   fundLCA: M.call(M.any(), M.any()).returns(VowShape),
   fundOsmoAccountForStake: M.call(M.any(), M.any()).returns(VowShape),
 });
@@ -166,6 +167,30 @@ export const prepareStakeManagementKit = (
             },
             { denom: denom, value: amt.value },
           );
+          seat.exit();
+        },
+        /**
+         * @param {ZCFSeat} seat
+         * @param {{
+         *   validatorAddress: string;
+         *   stakeAmount: number;
+         * }} offerArgs
+         */
+        async stakeOnOsmosis(seat, offerArgs) {
+          void log('Inside sendGmp');
+          const { validatorAddress, stakeAmount } = offerArgs;
+
+          trace('Offer Args:', JSON.stringify(offerArgs));
+
+          validatorAddress != null || Fail`validatorAddress must be defined`;
+          stakeAmount != null || Fail`stakeAmount must be defined`;
+
+          // @ts-ignore
+          await this.state.osmoAccount.delegate(
+            validatorAddress,
+            BigInt(stakeAmount),
+          );
+
           seat.exit();
         },
       },
