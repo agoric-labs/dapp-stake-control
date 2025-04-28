@@ -9,10 +9,10 @@ import { ChainAddressShape } from '@agoric/orchestration';
 const trace = makeTracer('StakingTap');
 
 /**
- * @import {IBCChannelID, VTransferIBCEvent} from '@agoric/vats';
+ * @import {VTransferIBCEvent} from '@agoric/vats';
  * @import {Vow, VowTools} from '@agoric/vow';
  * @import {Zone} from '@agoric/zone';
- * @import {ChainAddress, Denom, OrchestrationAccount} from '@agoric/orchestration';
+ * @import {ChainAddress, OrchestrationAccount} from '@agoric/orchestration';
  * @import {FungibleTokenPacketData} from '@agoric/cosmic-proto/ibc/applications/transfer/v2/packet.js';
  * @import {ZoeTools} from '@agoric/orchestration/src/utils/zoe-tools.js';
  */
@@ -21,11 +21,6 @@ const trace = makeTracer('StakingTap');
  * @typedef {{
  *   localAccount: OrchestrationAccount<{ chainId: 'agoric' }>;
  *   localChainAddress: ChainAddress;
- *   sourceChannel: IBCChannelID;
- *   remoteDenom: Denom;
- *   localDenom: Denom;
- *   assets: any;
- *   remoteChainInfo: any;
  * }} StakingTapState
  */
 
@@ -41,12 +36,7 @@ const InvitationMakerI = M.interface('invitationMaker', {
 
 const StakingKitStateShape = {
   localChainAddress: ChainAddressShape,
-  sourceChannel: M.string(),
-  remoteDenom: M.string(),
-  localDenom: M.string(),
   localAccount: M.remotable('OrchestrationAccount<{chainId:"agoric-3"}>'),
-  assets: M.any(),
-  remoteChainInfo: M.any(),
 };
 harden(StakingKitStateShape);
 
@@ -61,14 +51,14 @@ harden(StakingKitStateShape);
  */
 export const prepareStakeManagementKit = (
   zone,
-  { zcf, vowTools, log, zoeTools }
+  { zcf, vowTools, log, zoeTools },
 ) => {
   return zone.exoClassKit(
     'StakeManagementTapKit',
     {
       tap: M.interface('StakeManagementTap', {
         receiveUpcall: M.call(M.record()).returns(
-          M.or(VowShape, M.undefined())
+          M.or(VowShape, M.undefined()),
         ),
       }),
       transferWatcher: M.interface('TransferWatcher', {
@@ -175,11 +165,11 @@ export const prepareStakeManagementKit = (
 
           return zcf.makeInvitation(
             continuingStakeManagementHandler,
-            'stakeManagementTransaction'
+            'stakeManagementTransaction',
           );
         },
       },
-    }
+    },
   );
 };
 

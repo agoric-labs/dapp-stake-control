@@ -1,6 +1,5 @@
 // @ts-check
 import { Fail } from '@endo/errors';
-import { denomHash } from '@agoric/orchestration/src/utils/denomHash.js';
 
 /**
  * @import {GuestInterface, GuestOf} from '@agoric/async-flow';
@@ -26,8 +25,8 @@ import { denomHash } from '@agoric/orchestration/src/utils/denomHash.js';
  */
 export const createAndMonitorLCA = async (
   orch,
-  { log, makeStakeManagementKit, chainHub, zoeTools },
-  seat
+  { log, makeStakeManagementKit, zoeTools },
+  seat,
 ) => {
   void log('Inside createAndMonitorLCA');
   const [agoric, remoteChain] = await Promise.all([
@@ -43,30 +42,11 @@ export const createAndMonitorLCA = async (
   const localChainAddress = await localAccount.getAddress();
   console.log('Local Chain Address:', localChainAddress);
 
-  const agoricChainId = (await agoric.getChainInfo()).chainId;
-  const { transferChannel } = await chainHub.getConnectionInfo(
-    agoricChainId,
-    chainId
-  );
-  assert(transferChannel.counterPartyChannelId, 'unable to find sourceChannel');
-
-  const localDenom = `ibc/${denomHash({
-    denom: remoteDenom,
-    channelId: transferChannel.channelId,
-  })}`;
-
-  const assets = await agoric.getVBankAssetInfo();
-  const info = await remoteChain.getChainInfo();
   const stakeManagementKit = makeStakeManagementKit({
     localAccount,
     localChainAddress,
-    sourceChannel: transferChannel.counterPartyChannelId,
-    remoteDenom,
-    localDenom,
-    assets,
-    remoteChainInfo: info,
   });
-  void log('tap created successfully');
+
   // XXX consider storing appRegistration, so we can .revoke() or .updateTargetApp()
   // @ts-expect-error tap.receiveUpcall: 'Vow<void> | undefined' not assignable to 'Promise<any>'
   await localAccount.monitorTransfers(stakeManagementKit.tap);

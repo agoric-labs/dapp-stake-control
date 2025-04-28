@@ -32,7 +32,7 @@ export const contract = async (
   zcf,
   privateArgs,
   zone,
-  { chainHub, orchestrateAll, vowTools, zoeTools }
+  { chainHub, orchestrateAll, vowTools, zoeTools },
 ) => {
   console.log('Inside Contract');
 
@@ -41,7 +41,7 @@ export const contract = async (
     chainHub,
     zcf.getTerms().brands,
     privateArgs.chainInfo,
-    privateArgs.assetInfo
+    privateArgs.assetInfo,
   );
 
   const creatorFacet = prepareChainHubAdmin(zone, chainHub);
@@ -58,13 +58,12 @@ export const contract = async (
       vowTools,
       log,
       zoeTools,
-    }
+    },
   );
 
   const { createAndMonitorLCA } = orchestrateAll(lcaFlows, {
     makeStakeManagementKit,
     log,
-    chainHub,
     zoeTools,
   });
 
@@ -77,7 +76,7 @@ export const contract = async (
       createAndMonitorLCA() {
         return zcf.makeInvitation(createAndMonitorLCA, 'makeLCA', undefined);
       },
-    }
+    },
   );
 
   return { publicFacet, creatorFacet };

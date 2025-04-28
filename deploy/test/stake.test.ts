@@ -20,12 +20,11 @@ type MakeOfferParams = {
 const makeTestContext = async (t: ExecutionContext) => {
   const ctx = await makeWalletFactoryContext(
     t,
-    '@agoric/vm-config/decentral-itest-orchestration-config.json'
+    '@agoric/vm-config/decentral-itest-orchestration-config.json',
   );
 
-  const wallet = await ctx.walletFactoryDriver.provideSmartWallet(
-    'agoric1makeAccount'
-  );
+  const wallet =
+    await ctx.walletFactoryDriver.provideSmartWallet('agoric1makeAccount');
 
   const fullCtx = {
     ...ctx,
@@ -83,8 +82,8 @@ test.before(async (t) => {
             decimalPlaces: 6,
           },
         ]),
-      ]
-    )
+      ],
+    ),
   );
 
   await evalProposal(
@@ -96,7 +95,7 @@ test.before(async (t) => {
       }),
       '--assetInfo',
       assetInfo,
-    ])
+    ]),
   );
 });
 
@@ -133,7 +132,6 @@ test.serial('make LCA via stakeManagement', async (t) => {
   t.deepEqual(getLogged(), [
     'Inside createAndMonitorLCA',
     'localAccount created successfully',
-    'tap created successfully',
     'Monitoring transfers setup successfully',
     'Done',
   ]);
