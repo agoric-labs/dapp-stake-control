@@ -1,0 +1,12 @@
+{
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/bundles": true,
+    "**/dist": true,
+    "**/startStakeManagement-permit.json": true,
+    "**/startStakeManagement-plan.json": true,
+    "**/startStakeManagement.js": true,
+    "**/deploy/test/asset-builder": true,
+    "**/deploy/test/utils": true
+  }
+}
