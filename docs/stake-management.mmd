@@ -1,22 +1,17 @@
 sequenceDiagram
-    participant User
-    participant DappUI as Dapp-Stake-Control UI
-    participant Contract as Agoric Contract
-    participant LCA as Local Chain Account (LCA)
-    participant SMK as StakeManagementKit
-    participant OsmosisWallet as Osmosis Wallet
+    title: Create Portfolio
+    actor User as Samantha
+    participant DappUI as Orchy
+    participant sw as SmartWallet
+    participant Contract as stake.contract
+    participant SMK as Portfolio
+    participant OsmosisWallet as Osmosis ICA
 
-    User ->> DappUI: Initiates Interaction
-    DappUI ->> Contract: Submit Offer - makeStakeManagementInvitation()
-
-    Contract ->> LCA: Create Local Chain Account (LCA)
-    Contract -->> User: Send Continuing Invitation (StakeManagementKit access)
-
-    User ->> Contract: Accept Continuing Invitation
-    Contract ->> SMK: Provide StakeManagementKit
-
-    User ->> SMK: Fund Osmosis Wallet
-    SMK ->> OsmosisWallet: Transfer Funds
-
-    User ->> SMK: Stake Tokens
-    SMK ->> OsmosisWallet: Stake Tokens
+    User ->> DappUI: check osmosis,<br/>dialy, stake on receipt, restake
+    User ->> DappUI: Create Portfolio
+    DappUI -->> sw: makeStakeManagementInvitation({ osmosis:<br/> { freq: 'daily', onReceipt: ['stake'], onRewards: ['restake'] })
+    sw -->> Contract: makeStakeManagementInvitation(...)<br/> { give: { Fee, Retainer } }
+    Contract -->> SMK: create StakeManagementKit({freq: 'daily', ...})
+    SMK -->> OsmosisWallet: osmosis.makeAccount()
+    Contract -->> sw: invitationMakers
+    sw -->> DappUI: payouts: 0
