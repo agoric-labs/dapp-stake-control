@@ -229,6 +229,13 @@ export const prepareStakeManagementKit = (
                   return res;
                 });
               }
+              case 'stakeOsmo': {
+                const vow = holder.stakeOnOsmosis(seat, args[0]);
+                return vowTools.when(vow, (res) => {
+                  seat.exit();
+                  return res;
+                });
+              }
               default:
                 return 'Invalid method';
             }

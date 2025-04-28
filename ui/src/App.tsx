@@ -17,6 +17,8 @@ import { useAppStore } from './state';
 import { Tabs } from './components/Tabs';
 import { MakeAccount } from './components/MakeAccount';
 import { CurrentOffer } from './interfaces/interfaces';
+import { FundAccount } from './components/FundAccount';
+import { StakeForm } from './components/StakeForm';
 
 const ENDPOINTS = {
   RPC: 'http://localhost:26657',
@@ -32,10 +34,10 @@ const setup = async (walletAddress: string | undefined) => {
       console.log('got instances', instances);
       useAppStore.setState({
         contractInstance: instances.find(
-          ([name]) => name === 'stakeManagement'
+          ([name]) => name === 'stakeManagement',
         )?.[1],
       });
-    }
+    },
   );
 
   const { fromEntries } = Object;
@@ -47,7 +49,7 @@ const setup = async (walletAddress: string | undefined) => {
       useAppStore.setState({
         brands: fromEntries(brands),
       });
-    }
+    },
   );
 
   watcher.watchLatest<CurrentOffer>(
@@ -57,10 +59,26 @@ const setup = async (walletAddress: string | undefined) => {
       if (!currentOffer) {
         return;
       }
+
       useAppStore.setState({
         currentOffers: currentOffer,
       });
-    }
+
+      if (!currentOffer?.offerToUsedInvitation) {
+        return;
+      }
+
+      const { contractInstance } = useAppStore.getState();
+
+      const invitations = currentOffer.offerToUsedInvitation.filter(
+        (invitation) => invitation[1].value[0].instance === contractInstance,
+      );
+
+      const sorted = invitations.sort((a, b) => b[0].localeCompare(a[0]));
+      useAppStore.setState({
+        latestInvitation: sorted[0][0],
+      });
+    },
   );
 };
 
@@ -73,7 +91,6 @@ const connectWallet = async () => {
 function App() {
   const { wallet, loading, tab } = useAppStore((state) => ({
     wallet: state.wallet,
-    balance: state.balance,
     loading: state.loading,
     error: state.error,
     tab: state.tab,
@@ -85,17 +102,17 @@ function App() {
   }, [wallet]);
 
   return (
-    <div className='container'>
-      <div className='view-source'>
-        <a href='https://github.com/Agoric/agoric-sdk' target='_blank'>
-          <img src={gituhbLogo} className='github-logo' alt='Source Code' />
+    <div className="container">
+      <div className="view-source">
+        <a href="https://github.com/Agoric/agoric-sdk" target="_blank">
+          <img src={gituhbLogo} className="github-logo" alt="Source Code" />
           Fork me on GitHub
         </a>
       </div>
 
       <ToastContainer
         aria-label
-        position='bottom-right'
+        position="bottom-right"
         hideProgressBar={false}
         newestOnTop={false}
         closeButton={false}
@@ -104,26 +121,30 @@ function App() {
         rtl={false}
         pauseOnFocusLoss
         pauseOnHover
-        theme='colored'></ToastContainer>
+        theme="colored"
+      ></ToastContainer>
 
       <Logo />
 
       {!wallet ? (
         <>
           <button
-            className='connect-button'
+            className="connect-button"
             onClick={connectWallet}
-            disabled={loading}>
+            disabled={loading}
+          >
             {loading ? 'Connecting...' : 'Connect Wallet'}
           </button>
         </>
       ) : (
         <>
-          <div className='main-container'>
+          <div className="main-container">
             <Tabs />
-            <div className='content'>
+            <div className="content">
               <WalletStatus address={wallet?.address} />
               {tab === 1 && <MakeAccount />}
+              {tab === 2 && <FundAccount />}
+              {tab === 3 && <StakeForm />}
             </div>
           </div>
         </>
