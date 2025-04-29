@@ -96,43 +96,41 @@ export const StakeForm = () => {
   };
 
   return (
-    <div className="dashboard-container">
-      <div className="dashboard">
-        <div className="transfer-form">
-          <div className="form-group">
-            <label className="input-label">Validator Address:</label>
-            <div className="form-group-validator-address">
-              <input
-                className="input-field"
-                value={validatorAddress}
-                onChange={handleValidatorAddress}
-                placeholder="osmo1..."
-              />
-            </div>
-          </div>
+    <form className="dark-form-container" id="stake-form">
+      <h2 className="dark-title">Stake Tokens</h2>
 
-          <div className="form-group">
-            <label className="input-label">Amount:</label>
-            <input
-              className="input-field"
-              type="number"
-              value={amount}
-              onChange={handleAmountToSend}
-              placeholder="0.00"
-              min="0"
-              step="0.1"
-            />
-          </div>
-
-          <button
-            className="send-button"
-            onClick={makeOffer}
-            disabled={loading || !amount || !validatorAddress}
-          >
-            {loading ? 'Processing...' : 'Stake'}
-          </button>
+      <div className="form-group">
+        <label className="input-label">Validator Address:</label>
+        <div className="form-group-validator-address">
+          <input
+            className="input-field"
+            value={validatorAddress}
+            onChange={handleValidatorAddress}
+            placeholder="osmo1..."
+          />
         </div>
       </div>
-    </div>
+
+      <div className="form-group">
+        <label className="input-label">Amount:</label>
+        <input
+          className="input-field"
+          type="number"
+          value={amount}
+          onChange={handleAmountToSend}
+          placeholder="0.00"
+          min="0"
+          step="0.1"
+        />
+      </div>
+
+      <button
+        className="stake-button"
+        onClick={makeOffer}
+        disabled={loading || !amount || !validatorAddress}
+      >
+        {loading ? 'Processing...' : 'Stake'}
+      </button>
+    </form>
   );
 };

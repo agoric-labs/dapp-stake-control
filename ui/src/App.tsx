@@ -11,13 +11,10 @@ import {
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
 import Logo from './components/Logo';
-import gituhbLogo from '/github.svg';
-import WalletStatus from './components/WalletStatus';
 import { useAppStore } from './state';
-import { Tabs } from './components/Tabs';
-import { MakePortfolio } from './components/MakePortfolio';
 import { CurrentOffer } from './interfaces/interfaces';
-import { StakeForm } from './components/StakeForm';
+import { ContentContainer } from './components/ContentContainer';
+import { TopBar } from './components/Topbar';
 
 const ENDPOINTS = {
   RPC: 'http://localhost:26657',
@@ -100,17 +97,6 @@ function App() {
     setup(wallet?.address);
   }, [wallet]);
 
-  const renderTabContent = () => {
-    switch (tab) {
-      case 1:
-        return <MakePortfolio />;
-      case 2:
-        return <StakeForm />;
-      default:
-        return null;
-    }
-  };
-
   if (!wallet) {
     return (
       <>
@@ -127,37 +113,26 @@ function App() {
   }
 
   return (
-    <div className="container">
-      <div className="view-source">
-        <a href="https://github.com/Agoric/agoric-sdk" target="_blank">
-          <img src={gituhbLogo} className="github-logo" alt="Source Code" />
-          Fork me on GitHub
-        </a>
-      </div>
+    <>
+      <TopBar />
+      <div className="container">
+        <ToastContainer
+          aria-label
+          position="bottom-right"
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeButton={false}
+          closeOnClick
+          autoClose={5000}
+          rtl={false}
+          pauseOnFocusLoss
+          pauseOnHover
+          theme="colored"
+        ></ToastContainer>
 
-      <ToastContainer
-        aria-label
-        position="bottom-right"
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeButton={false}
-        closeOnClick
-        autoClose={5000}
-        rtl={false}
-        pauseOnFocusLoss
-        pauseOnHover
-        theme="colored"
-      ></ToastContainer>
-
-      <Logo />
-      <div className="main-container">
-        <Tabs />
-        <div className="content">
-          <WalletStatus address={wallet.address} />
-          {renderTabContent()}
-        </div>
+        <ContentContainer />
       </div>
-    </div>
+    </>
   );
 }
 
