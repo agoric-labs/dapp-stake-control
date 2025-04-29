@@ -29,9 +29,7 @@ const setup = async (walletAddress: string | undefined) => {
     (instances) => {
       console.log('got instances', instances);
       useAppStore.setState({
-        contractInstance: instances.find(
-          ([name]) => name === 'stakeManagement',
-        )?.[1],
+        contractInstance: instances.find(([name]) => name === 'StkC')?.[1],
       });
     },
   );
@@ -85,7 +83,7 @@ const connectWallet = async () => {
 };
 
 function App() {
-  const { wallet, loading, tab } = useAppStore((state) => ({
+  const { wallet, loading } = useAppStore((state) => ({
     wallet: state.wallet,
     loading: state.loading,
     error: state.error,

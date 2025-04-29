@@ -10,7 +10,7 @@ export const Tabs = () => {
   };
 
   const tabs = [
-    { label: 'Portfolio', number: 1 },
+    { label: 'Create Portfolio', number: 1 },
     { label: 'Stake', number: 2 },
   ];
 
