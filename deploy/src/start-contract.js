@@ -4,6 +4,7 @@ import {
   NonNullish,
 } from '@agoric/internal';
 import { E } from '@endo/far';
+import { AmountMath } from '@agoric/ertp';
 
 /// <reference types="@agoric/vats/src/core/types-ambient"/>
 
@@ -66,6 +67,11 @@ export const startStakeManagement = async (
 ) => {
   trace(startStakeManagement.name);
 
+  const terms = {
+    fee: AmountMath.make(await BLD, 10n * 1_000_000n),
+    retainer: AmountMath.make(await BLD, 50n * 1_000_000n),
+  };
+
   const marshaller = await E(board).getReadonlyMarshaller();
 
   trace('Setting privateArgs');
@@ -108,6 +114,7 @@ export const startStakeManagement = async (
     installation: StkC,
     issuerKeywordRecord,
     privateArgs,
+    terms,
   });
   produceInstance.resolve(instance);
   trace('done');

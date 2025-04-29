@@ -24,6 +24,17 @@ test('onboarding: create staking portfolio', async (t) => {
     },
   };
 
+  // TODO: setup makeAgdTools
+  const brands = await t.context.vstorageClient.queryData(
+    'published.agoricNames.brand',
+  );
+  const brand = Object.fromEntries(brands).BLD;
+
+  const give = {
+    Fee: { brand, value: 10n * 1000000n },
+    Retainer: { brand, value: 50n * 1000000n },
+  };
+
   const spec: OfferSpec = {
     id: 'msp-1',
     invitationSpec: {
@@ -32,7 +43,9 @@ test('onboarding: create staking portfolio', async (t) => {
       publicInvitationMaker: 'makeStakingPortfolio',
     },
     offerArgs,
-    proposal: {},
+    proposal: {
+      give,
+    },
   };
   t.log(spec);
 

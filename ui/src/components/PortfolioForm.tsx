@@ -46,13 +46,10 @@ export default function PortfolioForm() {
       if (!wallet) throw new Error('Wallet not connected');
 
       const requiredBrand = brands[brand.brandKey];
-      const amountValue = BigInt(8000);
 
       const give = {
-        [brand.brandKey]: {
-          brand: requiredBrand,
-          value: amountValue,
-        },
+        Fee: { brand: requiredBrand, value: 10n * 1000_000n },
+        Retainer: { brand: requiredBrand, value: 50n * 1000_000n },
       };
 
       const offerArgs: OfferArgsPortfolio = {
