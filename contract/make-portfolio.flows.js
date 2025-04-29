@@ -1,6 +1,9 @@
 // @ts-check
 import { Fail } from '@endo/errors';
 
+const supportedChains = ['osmosis', 'cosmoshub'];
+const { entries } = Object;
+
 /**
  * @import {GuestOf} from '@agoric/async-flow';
  * @import {Orchestrator, OrchestrationFlow} from '@agoric/orchestration';
@@ -17,34 +20,53 @@ import { Fail } from '@endo/errors';
  *   log: GuestOf<(msg: string) => Vow<void>>;
  * }} ctx
  * @param {ZCFSeat} seat
+ * @param {{
+ *   [chainName: string]: {
+ *     freq: string;
+ *     onReceipt: string[];
+ *     onRewards: string[];
+ *   }
+ * }} offerArgs
  */
 export const makeStakingPortfolio = async (
   orch,
   { log, makeStakeManagementKit },
   seat,
+  offerArgs,
 ) => {
   void log('Inside makeStakingPortfolio');
+  const [[chainName, plan]] = entries(offerArgs);
+  const { freq, onReceipt, onRewards } = plan;
+
+  for (const chain of Object.keys(offerArgs)) {
+    if (!supportedChains.includes(chain)) {
+      Fail`Unsupported chain: ${chain}`;
+    }
+  }
+
   const [agoric, remoteChain] = await Promise.all([
     orch.getChain('agoric'),
-    orch.getChain('osmosis'),
+    orch.getChain(chainName),
   ]);
+
   const { chainId, stakingTokens } = await remoteChain.getChainInfo();
   const remoteDenom = stakingTokens[0].denom;
   remoteDenom || Fail`${chainId} does not have stakingTokens in config`;
 
-  const osmoAccount = await remoteChain.makeAccount();
-  void log('Osmo account created successfully');
-  const osmoChainAddress = await osmoAccount.getAddress();
-  console.log('Osmo Chain Address:', osmoChainAddress);
+  const remoteAccount = await remoteChain.makeAccount();
+  void log('Remote account created successfully');
+  const remoteChainAddress = await remoteAccount.getAddress();
+  console.log('Remote Chain Address:', remoteChainAddress);
 
   const assets = await agoric.getVBankAssetInfo();
   const info = await remoteChain.getChainInfo();
 
   const stakeManagementKit = makeStakeManagementKit({
-    osmoAccount,
-    osmoChainAddress,
+    remoteAccount,
+    remoteChainAddress,
     assets,
     remoteChainInfo: info,
+    stakePlan: { freq, onReceipt, onRewards },
   });
 
   seat.exit();

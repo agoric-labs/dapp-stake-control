@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
 import './PortfolioForm.css';
+import { toast } from 'react-toastify';
+import { TOAST_DURATION } from '../config';
+import { useAppStore } from '../state';
+import { showError } from '../Utils';
 
 const chainOptions = ['Osmosis', 'Cosmos Hub'];
 
 export default function PortfolioForm() {
   const [selectedChain, setSelectedChain] = useState('');
   const [settings, setSettings] = useState({});
+  const { wallet, contractInstance, brands } = useAppStore.getState();
 
   const toggleSetting = (key) => {
     setSettings((prev) => ({
@@ -21,12 +26,86 @@ export default function PortfolioForm() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     console.log('Form Submitted:', {
       selectedChain,
       settings,
     });
+
+    let toastId: string | number | null = null;
+    const brand = {
+      brandKey: 'BLD',
+      decimals: 6,
+    };
+
+    try {
+      if (!contractInstance) throw new Error('No contract instance');
+      if (!brands) throw new Error('Brands not initialized');
+      if (!wallet) throw new Error('Wallet not connected');
+
+      const requiredBrand = brands[brand.brandKey];
+      const amountValue = BigInt(8000);
+
+      const give = {
+        [brand.brandKey]: {
+          brand: requiredBrand,
+          value: amountValue,
+        },
+      };
+
+      const offerArgs = {};
+      offerArgs[selectedChain] = {
+        freq: settings.restakeFrequency || settings.stakeFrequency,
+      };
+      const actions: string[] = [];
+
+      if (settings.stake) {
+        actions.push('stake');
+      }
+      if (settings.restake) {
+        offerArgs[selectedChain] = {
+          onRewards: ['restake'],
+          ...offerArgs[selectedChain],
+        };
+      } else if (settings.stake) {
+        offerArgs[selectedChain] = {
+          onReceipt: ['stake'],
+          ...offerArgs[selectedChain],
+        };
+      }
+
+      await new Promise<void>((resolve, reject) => {
+        wallet.makeOffer(
+          {
+            source: 'contract',
+            instance: contractInstance,
+            publicInvitationMaker: 'makeStakingPortfolio',
+          },
+          { give },
+          {},
+          (update: { status: string; data?: unknown }) => {
+            switch (update.status) {
+              case 'error':
+                reject(new Error(`Offer error: ${update.data}`));
+                break;
+              case 'accepted':
+                toast.success('Offer was successful!');
+                resolve();
+                break;
+              case 'refunded':
+                reject(new Error('Offer was rejected'));
+                break;
+            }
+          },
+        );
+      });
+    } catch (error) {
+      showError({ content: error.message, duration: TOAST_DURATION.ERROR });
+    } finally {
+      if (toastId) toast.dismiss(toastId);
+      useAppStore.setState({ loading: false });
+    }
   };
 
   return (
@@ -40,7 +119,7 @@ export default function PortfolioForm() {
       >
         <option value="">Select Chain</option>
         {chainOptions.map((chain) => (
-          <option key={chain} value={chain}>
+          <option key={chain} value={chain.toLowerCase()}>
             {chain}
           </option>
         ))}

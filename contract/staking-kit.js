@@ -20,15 +20,20 @@ const trace = makeTracer('StkCTap');
 
 /**
  * @typedef {{
- *   osmoAccount: OrchestrationAccount<{ chainId: 'osmosis-1' }>;
- *   osmoChainAddress: CosmosChainAddress;
+ *   remoteAccount: OrchestrationAccount<any>;
+ *   remoteChainAddress: CosmosChainAddress;
  *   assets: any;
  *   remoteChainInfo: any;
+ *   stakePlan: {
+ *     freq: string;
+ *     onReceipt: string[];
+ *     onRewards: string[];
+ *   };
  * }} StakingTapState
  */
 
 const StakeManagementI = M.interface('holder', {
-  stakeOnOsmosis: M.call(M.any(), M.any()).returns(M.any()),
+  stakeOnRemoteChain: M.call(M.any(), M.any()).returns(M.any()),
 });
 
 const InvitationMakerI = M.interface('invitationMaker', {
@@ -36,10 +41,15 @@ const InvitationMakerI = M.interface('invitationMaker', {
 });
 
 const StakingKitStateShape = {
-  osmoChainAddress: CosmosChainAddressShape,
-  osmoAccount: M.remotable('OrchestrationAccount<{chainId:"osmosis-1"}>'),
+  remoteChainAddress: CosmosChainAddressShape,
+  remoteAccount: M.remotable('OrchestrationAccount<any>'),
   assets: M.any(),
   remoteChainInfo: M.any(),
+  stakePlan: M.splitRecord({
+    freq: M.string(),
+    onReceipt: M.arrayOf(M.string()),
+    onRewards: M.arrayOf(M.string()),
+  }),
 };
 harden(StakingKitStateShape);
 
@@ -113,7 +123,7 @@ export const prepareStakeManagementKit = (zone, { zcf, vowTools, log }) => {
          *   stakeAmount: number;
          * }} offerArgs
          */
-        async stakeOnOsmosis(seat, offerArgs) {
+        async stakeOnRemoteChain(seat, offerArgs) {
           void log('Inside sendGmp');
           const { validatorAddress, stakeAmount } = offerArgs;
 
@@ -123,7 +133,7 @@ export const prepareStakeManagementKit = (zone, { zcf, vowTools, log }) => {
           stakeAmount != null || Fail`stakeAmount must be defined`;
 
           // @ts-ignore
-          await this.state.osmoAccount.delegate(
+          await this.state.remoteAccount.delegate(
             validatorAddress,
             BigInt(stakeAmount),
           );
@@ -138,7 +148,7 @@ export const prepareStakeManagementKit = (zone, { zcf, vowTools, log }) => {
             const { holder } = this.facets;
             switch (method) {
               case 'stakeOsmo': {
-                const vow = holder.stakeOnOsmosis(seat, args[0]);
+                const vow = holder.stakeOnRemoteChain(seat, args[0]);
                 return vowTools.when(vow, (res) => {
                   seat.exit();
                   return res;
