@@ -54,7 +54,7 @@ harden(StakingKitStateShape);
  */
 export const prepareStakeManagementKit = (zone, { zcf, vowTools, log }) => {
   return zone.exoClassKit(
-    'StakeManagementTapKit',
+    'StakeManagementKit',
     {
       tap: M.interface('StakeManagementTap', {
         receiveUpcall: M.call(M.record()).returns(

@@ -166,6 +166,7 @@ export const commonSetup = async (t: ExecutionContext<any>) => {
    * Read pure data (CapData that has no slots) from the storage path
    * @param path
    */
+  // @ts-expect-error extra test widget???
   storage.getDeserialized = (path: string): unknown =>
     storage.getValues(path).map(defaultSerializer.parse);
 

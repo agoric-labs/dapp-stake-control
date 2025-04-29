@@ -1,23 +1,35 @@
 // @ts-check
-import { M } from '@endo/patterns';
-import { E } from '@endo/far';
+import { makeTracer } from '@agoric/internal';
 import { prepareChainHubAdmin } from '@agoric/orchestration/src/exos/chain-hub-admin.js';
-import { withOrchestration } from '@agoric/orchestration/src/utils/start-helper.js';
+import fetchedChainInfo from '@agoric/orchestration/src/fetched-chain-info.js';
 import { registerChainsAndAssets } from '@agoric/orchestration/src/utils/chain-hub-helper.js';
+import { withOrchestration } from '@agoric/orchestration/src/utils/start-helper.js';
 import { InvitationShape } from '@agoric/zoe/src/typeGuards.js';
-import { PortfolioConfigShape } from './typeGuards.js';
+import { E } from '@endo/far';
+import { M } from '@endo/patterns';
 import * as makeStakingPortfolioFlows from './make-portfolio.flows.js';
 import { prepareStakeManagementKit } from './staking-kit.js';
-import { makeTracer } from '@agoric/internal';
-import fetchedChainInfo from '@agoric/orchestration/src/fetched-chain-info.js';
+import {
+  customTermsShape,
+  makeProposalShapes,
+  PortfolioConfigShape,
+  privateArgsShape,
+} from './typeGuards.js';
 
 const trace = makeTracer('StkC');
 
+export const meta = {
+  customTermsShape,
+  privateArgsShape,
+};
+harden(meta);
+
 /**
+ * @import {Amount, Ratio} from '@agoric/ertp';
  * @import {Remote, Vow} from '@agoric/vow';
  * @import {Zone} from '@agoric/zone';
  * @import {OrchestrationPowers, OrchestrationTools} from '@agoric/orchestration/src/utils/start-helper.js';
- * @import {CosmosChainInfo, Denom, DenomDetail} from '@agoric/orchestration';
+ * @import {ChainInfo, Denom, DenomDetail} from '@agoric/orchestration';
  * @import {Marshaller, StorageNode} from '@agoric/internal/src/lib-chainStorage.js';
  * @import {PortfolioConfig} from './typeGuards.js';
  * @import { ZCF } from '@agoric/zoe/src/zoeService/zoe.js';
@@ -26,10 +38,15 @@ const trace = makeTracer('StkC');
 /**
  * Orchestration contract to be wrapped by withOrchestration for Zoe
  *
- * @param {ZCF} zcf
+ * @typedef {{
+ *   portfolioFee: Amount,
+ *   commission?: Ratio,
+ * }} StakingTerms
+ *
+ * @param {ZCF<StakingTerms>} zcf
  * @param {OrchestrationPowers & {
  *   marshaller: Marshaller;
- *   chainInfo: Record<string, CosmosChainInfo>;
+ *   chainInfo: Record<string, ChainInfo>;
  *   assetInfo?: [Denom, DenomDetail & { brandKey?: string }][];
  *   storageNode: Remote<StorageNode>;
  * }} privateArgs
@@ -43,11 +60,13 @@ export const contract = async (
   { chainHub, orchestrateAll, vowTools, zoeTools },
 ) => {
   console.log('Inside Contract');
+  const terms = zcf.getTerms();
 
   console.log('Registering Chain and Assets....');
   registerChainsAndAssets(
     chainHub,
-    zcf.getTerms().brands,
+    terms.brands,
+    // FIX: replace fetchedChainInfo
     {
       agoric: fetchedChainInfo.agoric,
       osmosis: fetchedChainInfo.osmosis,
@@ -78,6 +97,7 @@ export const contract = async (
     log,
   });
 
+  const proposalShapes = makeProposalShapes(terms);
   const publicFacet = zone.exo(
     'Staking API',
     M.interface('Staking API', {
@@ -89,7 +109,12 @@ export const contract = async (
       /** @param {PortfolioConfig} config */
       makeStakingPortfolio(config) {
         trace('makeStakingPortfolio(', config, ')');
-        return zcf.makeInvitation(makeStakingPortfolio, 'makeLCA', undefined);
+        return zcf.makeInvitation(
+          makeStakingPortfolio,
+          'makeLCA',
+          undefined,
+          proposalShapes.makePortfolio,
+        );
       },
     },
   );
