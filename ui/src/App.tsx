@@ -15,9 +15,8 @@ import gituhbLogo from '/github.svg';
 import WalletStatus from './components/WalletStatus';
 import { useAppStore } from './state';
 import { Tabs } from './components/Tabs';
-import { MakeAccount } from './components/MakeAccount';
+import { MakePortfolio } from './components/MakePortfolio';
 import { CurrentOffer } from './interfaces/interfaces';
-import { FundAccount } from './components/FundAccount';
 import { StakeForm } from './components/StakeForm';
 
 const ENDPOINTS = {
@@ -101,6 +100,32 @@ function App() {
     setup(wallet?.address);
   }, [wallet]);
 
+  const renderTabContent = () => {
+    switch (tab) {
+      case 1:
+        return <MakePortfolio />;
+      case 2:
+        return <StakeForm />;
+      default:
+        return null;
+    }
+  };
+
+  if (!wallet) {
+    return (
+      <>
+        <Logo />
+        <button
+          className="connect-button"
+          onClick={connectWallet}
+          disabled={loading}
+        >
+          {loading ? 'Connecting...' : 'Connect Wallet'}
+        </button>
+      </>
+    );
+  }
+
   return (
     <div className="container">
       <div className="view-source">
@@ -125,30 +150,13 @@ function App() {
       ></ToastContainer>
 
       <Logo />
-
-      {!wallet ? (
-        <>
-          <button
-            className="connect-button"
-            onClick={connectWallet}
-            disabled={loading}
-          >
-            {loading ? 'Connecting...' : 'Connect Wallet'}
-          </button>
-        </>
-      ) : (
-        <>
-          <div className="main-container">
-            <Tabs />
-            <div className="content">
-              <WalletStatus address={wallet?.address} />
-              {tab === 1 && <MakeAccount />}
-              {tab === 2 && <FundAccount />}
-              {tab === 3 && <StakeForm />}
-            </div>
-          </div>
-        </>
-      )}
+      <div className="main-container">
+        <Tabs />
+        <div className="content">
+          <WalletStatus address={wallet.address} />
+          {renderTabContent()}
+        </div>
+      </div>
     </div>
   );
 }

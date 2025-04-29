@@ -4,9 +4,8 @@ import { TOAST_DURATION } from '../config';
 import { useAppStore } from '../state';
 import { toast } from 'react-toastify';
 
-export const MakeAccount = () => {
-  const { wallet, contractInstance, brands, currentOffers } =
-    useAppStore.getState();
+export const MakePortfolio = () => {
+  const { wallet, contractInstance, brands } = useAppStore.getState();
   const BLD = {
     brandKey: 'BLD',
     decimals: 6,
@@ -67,19 +66,12 @@ export const MakeAccount = () => {
     }
   };
 
-  // const invitations = currentOffers?.offerToUsedInvitation.filter(
-  //   (invitation) => invitation[1].value[0].instance === contractInstance
-  // );
-  // const latestInvitation = invitations?.sort((a, b) =>
-  //   b[0].localeCompare(a[0])
-  // )[0];
-
   return (
     <div className="dashboard-container">
       <div className="dashboard">
         <div className="transfer-form">
           <button className="invoke-button" onClick={makeOffer}>
-            Setup LCA
+            Make Portfolio
           </button>
         </div>
       </div>
