@@ -29,13 +29,14 @@ yarn dev
 - Install dependencies for deployment:
 
   ```
-  yarn install
+  (cd contract; yarn install)
+  (cd deploy; yarn install)
   ```
 
 - Deploy the contract:
 
   ```
-  yarn deploy
+  (cd deploy; yarn deploy)
   ```
 
 ## Run Tests
