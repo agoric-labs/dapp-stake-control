@@ -13,18 +13,18 @@ import { E } from '@endo/far';
  * @import {start as StartFn} from '../../contract/stake.contract.js';
  */
 
-const trace = makeTracer('start stakeManagement', true);
+const trace = makeTracer('start StkC', true);
 
 /**
  * @param {BootstrapPowers & {
  *   installation: {
  *     consume: {
- *       stakeManagement: Installation<StartFn>;
+ *       StkC: Installation<StartFn>;
  *     };
  *   };
  *   instance: {
  *     produce: {
- *       stakeManagement: Producer<Instance>;
+ *       StkC: Producer<Instance>;
  *     };
  *   };
  *   issuer: {
@@ -53,10 +53,10 @@ export const startStakeManagement = async (
       startUpgradable,
     },
     installation: {
-      consume: { stakeManagement },
+      consume: { StkC },
     },
     instance: {
-      produce: { stakeManagement: produceInstance },
+      produce: { StkC: produceInstance },
     },
     issuer: {
       consume: { BLD, IST },
@@ -104,8 +104,8 @@ export const startStakeManagement = async (
 
   trace('Starting contract instance');
   const { instance } = await E(startUpgradable)({
-    label: 'stakeManagement',
-    installation: stakeManagement,
+    label: 'StkC',
+    installation: StkC,
     issuerKeywordRecord,
     privateArgs,
   });
@@ -128,10 +128,10 @@ export const getManifest = ({ restoreRef }, { installationRef, options }) => {
           startUpgradable: true,
         },
         installation: {
-          consume: { stakeManagement: true },
+          consume: { StkC: true },
         },
         instance: {
-          produce: { stakeManagement: true },
+          produce: { StkC: true },
         },
         issuer: {
           consume: { BLD: true, IST: true },
@@ -139,7 +139,7 @@ export const getManifest = ({ restoreRef }, { installationRef, options }) => {
       },
     },
     installations: {
-      stakeManagement: restoreRef(installationRef),
+      StkC: restoreRef(installationRef),
     },
     options,
   };
