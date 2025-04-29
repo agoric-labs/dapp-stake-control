@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { TOAST_DURATION } from '../config';
 import { useAppStore } from '../state';
 import { showError } from '../Utils';
+import { OfferArgsPortfolio } from '../interfaces/interfaces';
 
 const chainOptions = ['Osmosis', 'Cosmos Hub'];
 
@@ -54,26 +55,29 @@ export default function PortfolioForm() {
         },
       };
 
-      const offerArgs = {};
-      offerArgs[selectedChain] = {
-        freq: settings.restakeFrequency || settings.stakeFrequency,
+      const offerArgs: OfferArgsPortfolio = {
+        [selectedChain]: {},
       };
-      const actions: string[] = [];
+
+      const chainArgs = offerArgs[selectedChain];
+
+      if (settings.stakeFrequency) {
+        chainArgs.freqStake = settings.stakeFrequency;
+      }
+
+      if (settings.restakeFrequency) {
+        chainArgs.freqRestake = settings.restakeFrequency;
+      }
+
+      if (settings.restake) {
+        chainArgs.onRewards = ['restake'];
+      }
 
       if (settings.stake) {
-        actions.push('stake');
+        chainArgs.onReceipt = ['stake'];
       }
-      if (settings.restake) {
-        offerArgs[selectedChain] = {
-          onRewards: ['restake'],
-          ...offerArgs[selectedChain],
-        };
-      } else if (settings.stake) {
-        offerArgs[selectedChain] = {
-          onReceipt: ['stake'],
-          ...offerArgs[selectedChain],
-        };
-      }
+
+      console.log(offerArgs);
 
       await new Promise<void>((resolve, reject) => {
         wallet.makeOffer(
@@ -83,7 +87,7 @@ export default function PortfolioForm() {
             publicInvitationMaker: 'makeStakingPortfolio',
           },
           { give },
-          {},
+          offerArgs,
           (update: { status: string; data?: unknown }) => {
             switch (update.status) {
               case 'error':
@@ -127,7 +131,10 @@ export default function PortfolioForm() {
 
       {selectedChain && (
         <div className="dark-card">
-          <h3>{selectedChain} Options</h3>
+          <h3>
+            {selectedChain.charAt(0).toUpperCase() + selectedChain.slice(1)}{' '}
+            Options
+          </h3>
 
           <div className="setting-row">
             <label>Stake when tokens arrive:</label>

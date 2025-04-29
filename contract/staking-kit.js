@@ -25,7 +25,8 @@ const trace = makeTracer('StkCTap');
  *   assets: any;
  *   remoteChainInfo: any;
  *   stakePlan: {
- *     freq: string;
+ *     freqStake: 'daily' | 'weekly';
+ *     freqRestake: 'daily' | 'weekly';
  *     onReceipt: string[];
  *     onRewards: string[];
  *   };

@@ -38,3 +38,12 @@ export interface AppState {
   currentOffers: CurrentOffer | null;
   latestInvitation: string;
 }
+
+export interface OfferArgsPortfolio {
+  [chainName: string]: {
+    freqStake?: 'daily' | 'weekly';
+    freqRestake?: 'daily' | 'weekly';
+    onReceipt?: string[];
+    onRewards?: string[];
+  };
+}

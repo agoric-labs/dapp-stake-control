@@ -2,6 +2,7 @@
 import { Fail } from '@endo/errors';
 
 const supportedChains = ['osmosis', 'cosmoshub'];
+const allowedFrequencies = ['daily', 'weekly'];
 const { entries } = Object;
 
 /**
@@ -22,7 +23,8 @@ const { entries } = Object;
  * @param {ZCFSeat} seat
  * @param {{
  *   [chainName: string]: {
- *     freq: string;
+ *     freqStake: 'daily' | 'weekly';
+ *     freqRestake: 'daily' | 'weekly';
  *     onReceipt: string[];
  *     onRewards: string[];
  *   }
@@ -36,12 +38,19 @@ export const makeStakingPortfolio = async (
 ) => {
   void log('Inside makeStakingPortfolio');
   const [[chainName, plan]] = entries(offerArgs);
-  const { freq, onReceipt, onRewards } = plan;
+  const { freqStake, freqRestake, onReceipt, onRewards } = plan;
+  console.log({ chainName, plan });
 
-  for (const chain of Object.keys(offerArgs)) {
-    if (!supportedChains.includes(chain)) {
-      Fail`Unsupported chain: ${chain}`;
-    }
+  if (!supportedChains.includes(chainName)) {
+    Fail`Unsupported chain: ${chainName}`;
+  }
+
+  if (!allowedFrequencies.includes(freqStake)) {
+    Fail`Invalid freqStake: ${freqStake}. Must be "daily" or "weekly".`;
+  }
+
+  if (!allowedFrequencies.includes(freqRestake)) {
+    Fail`Invalid freqRestake: ${freqRestake}. Must be "daily" or "weekly".`;
   }
 
   const [agoric, remoteChain] = await Promise.all([
@@ -66,11 +75,10 @@ export const makeStakingPortfolio = async (
     remoteChainAddress,
     assets,
     remoteChainInfo: info,
-    stakePlan: { freq, onReceipt, onRewards },
+    stakePlan: { freqStake, freqRestake, onReceipt, onRewards },
   });
 
   seat.exit();
-  void log('Done');
   return harden({ invitationMakers: stakeManagementKit.invitationMakers });
 };
 harden(makeStakingPortfolio);
