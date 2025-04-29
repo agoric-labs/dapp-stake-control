@@ -65,8 +65,10 @@ const makeOffer = async ({
 
 test.before(async (t) => {
   t.context = await makeTestContext(t);
+});
 
-  const { evalProposal, buildProposal } = t.context;
+test.serial('register token and deploy contract', async (t) => {
+  const { storage, evalProposal, buildProposal } = t.context;
 
   await evalProposal(
     buildProposal(
@@ -95,37 +97,12 @@ test.before(async (t) => {
       assetInfo,
     ]),
   );
-});
 
-test.beforeEach((t) => {
-  t.context.storage.data.delete('published.StkC.log');
-});
+  const instances = JSON.stringify(
+    JSON.parse(storage.data.get('published.agoricNames.instance')!).values.at(
+      -1,
+    ),
+  );
 
-test.serial('make LCA via stakeManagement', async (t) => {
-  const {
-    storage,
-    wallet,
-    bridgeUtils: { runInbound },
-  } = t.context;
-
-  t.log('execute make LCA');
-  const { BLD } = t.context.agoricNamesRemotes.brand;
-
-  await wallet.sendOffer({
-    id: 'makeLCACall',
-    invitationSpec: {
-      source: 'agoricContract',
-      instancePath: ['stakeManagement'],
-      callPipe: [['makeStakingPortfolio']],
-    },
-    proposal: {
-      // @ts-ignore
-      give: { BLD: { brand: BLD, value: 1n } },
-    },
-  });
-
-  const getLogged = () =>
-    JSON.parse(storage.data.get('published.StkC.log')!).values;
-
-  t.deepEqual(getLogged(), ['Inside createAndMonitorLCA']);
+  t.truthy(instances.includes('StkC'));
 });

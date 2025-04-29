@@ -18,12 +18,12 @@ import { Fail } from '@endo/errors';
  * }} ctx
  * @param {ZCFSeat} seat
  */
-export const createAndMonitorLCA = async (
+export const makeStakingPortfolio = async (
   orch,
   { log, makeStakeManagementKit },
   seat,
 ) => {
-  void log('Inside createAndMonitorLCA');
+  void log('Inside makeStakingPortfolio');
   const [agoric, remoteChain] = await Promise.all([
     orch.getChain('agoric'),
     orch.getChain('osmosis'),
@@ -51,4 +51,4 @@ export const createAndMonitorLCA = async (
   void log('Done');
   return harden({ invitationMakers: stakeManagementKit.invitationMakers });
 };
-harden(createAndMonitorLCA);
+harden(makeStakingPortfolio);
