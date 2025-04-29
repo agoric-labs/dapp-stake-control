@@ -7,15 +7,36 @@ export const Tabs = () => {
   }));
 
   return (
-    <div className='tabs'>
+    <div className="tabs">
       <button
         className={`tab-button ${tab === 1 ? 'active' : ''}`}
         onClick={() =>
           useAppStore.setState({
             tab: 1,
           })
-        }>
+        }
+      >
         Make LCA
+      </button>
+      <button
+        className={`tab-button ${tab === 2 ? 'active' : ''}`}
+        onClick={() =>
+          useAppStore.setState({
+            tab: 2,
+          })
+        }
+      >
+        Fund
+      </button>
+      <button
+        className={`tab-button ${tab === 3 ? 'active' : ''}`}
+        onClick={() =>
+          useAppStore.setState({
+            tab: 3,
+          })
+        }
+      >
+        Stake
       </button>
     </div>
   );

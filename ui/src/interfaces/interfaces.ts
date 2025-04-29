@@ -16,7 +16,7 @@ export interface CurrentOffer {
           instance: unknown;
           installation: unknown;
         }>;
-      }
+      },
     ]
   >;
   purses: Array<unknown>;
@@ -26,4 +26,15 @@ export interface BalanceCheckParams {
   walletAddress: string;
   rpcUrl: string;
   tokenDenom: string;
+}
+
+export interface AppState {
+  wallet?: Wallet;
+  contractInstance?: unknown;
+   brands?: Record<string, unknown>;
+  loading: boolean;
+  error?: string;
+  tab: number;
+  currentOffers: CurrentOffer | null;
+  latestInvitation: string;
 }

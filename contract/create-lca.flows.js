@@ -42,9 +42,21 @@ export const createAndMonitorLCA = async (
   const localChainAddress = await localAccount.getAddress();
   console.log('Local Chain Address:', localChainAddress);
 
+  const osmoAccount = await remoteChain.makeAccount();
+  void log('Osmo account created successfully');
+  const osmoChainAddress = await osmoAccount.getAddress();
+  console.log('Osmo Chain Address:', osmoChainAddress);
+
+  const assets = await agoric.getVBankAssetInfo();
+  const info = await remoteChain.getChainInfo();
+
   const stakeManagementKit = makeStakeManagementKit({
     localAccount,
     localChainAddress,
+    osmoAccount,
+    osmoChainAddress,
+    assets,
+    remoteChainInfo: info,
   });
 
   // XXX consider storing appRegistration, so we can .revoke() or .updateTargetApp()

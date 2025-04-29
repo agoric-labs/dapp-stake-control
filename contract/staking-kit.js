@@ -1,12 +1,13 @@
 // @ts-check
 import { M, mustMatch } from '@endo/patterns';
 import { VowShape } from '@agoric/vow';
-import { makeTracer } from '@agoric/internal';
+import { makeTracer, NonNullish } from '@agoric/internal';
 import { atob } from '@endo/base64';
 import { Fail } from '@endo/errors';
 import { ChainAddressShape } from '@agoric/orchestration';
 
 const trace = makeTracer('StakingTap');
+const { entries } = Object;
 
 /**
  * @import {VTransferIBCEvent} from '@agoric/vats';
@@ -21,13 +22,19 @@ const trace = makeTracer('StakingTap');
  * @typedef {{
  *   localAccount: OrchestrationAccount<{ chainId: 'agoric' }>;
  *   localChainAddress: ChainAddress;
+ *   osmoAccount: OrchestrationAccount<{ chainId: 'osmosis-1' }>;
+ *   osmoChainAddress: ChainAddress;
+ *   assets: any;
+ *   remoteChainInfo: any;
  * }} StakingTapState
  */
 
 const StakeManagementI = M.interface('holder', {
   getLocalAddress: M.call().returns(M.any()),
   send: M.call(M.any(), M.any()).returns(M.any()),
+  stakeOnOsmosis: M.call(M.any(), M.any()).returns(M.any()),
   fundLCA: M.call(M.any(), M.any()).returns(VowShape),
+  fundOsmoAccountForStake: M.call(M.any(), M.any()).returns(VowShape),
 });
 
 const InvitationMakerI = M.interface('invitationMaker', {
@@ -37,6 +44,10 @@ const InvitationMakerI = M.interface('invitationMaker', {
 const StakingKitStateShape = {
   localChainAddress: ChainAddressShape,
   localAccount: M.remotable('OrchestrationAccount<{chainId:"agoric-3"}>'),
+  osmoChainAddress: ChainAddressShape,
+  osmoAccount: M.remotable('OrchestrationAccount<{chainId:"osmosis-1"}>'),
+  assets: M.any(),
+  remoteChainInfo: M.any(),
 };
 harden(StakingKitStateShape);
 
@@ -129,6 +140,59 @@ export const prepareStakeManagementKit = (
           seat.hasExited() && Fail`The seat cannot be exited.`;
           return zoeTools.localTransfer(seat, this.state.localAccount, give);
         },
+        /**
+         * @param {ZCFSeat} seat
+         */
+        async fundOsmoAccountForStake(seat) {
+          seat.hasExited() && Fail`The seat cannot be exited.`;
+          const { give } = seat.getProposal();
+          await zoeTools.localTransfer(seat, this.state.localAccount, give);
+
+          const [[_kw, amt]] = entries(give);
+          amt.value > 0n || Fail`IBC transfer amount must be greater than zero`;
+          trace('_kw, amt', _kw, amt);
+
+          const { denom } = NonNullish(
+            this.state.assets.find((a) => a.brand === amt.brand),
+            `${amt.brand} not registered in vbank`,
+          );
+
+          const { chainId } = this.state.remoteChainInfo;
+
+          await this.state.localAccount.send(
+            {
+              value: String(this.state.osmoChainAddress),
+              chainId: chainId,
+              encoding: 'bech32',
+            },
+            { denom: denom, value: amt.value },
+          );
+          seat.exit();
+        },
+        /**
+         * @param {ZCFSeat} seat
+         * @param {{
+         *   validatorAddress: string;
+         *   stakeAmount: number;
+         * }} offerArgs
+         */
+        async stakeOnOsmosis(seat, offerArgs) {
+          void log('Inside sendGmp');
+          const { validatorAddress, stakeAmount } = offerArgs;
+
+          trace('Offer Args:', JSON.stringify(offerArgs));
+
+          validatorAddress != null || Fail`validatorAddress must be defined`;
+          stakeAmount != null || Fail`stakeAmount must be defined`;
+
+          // @ts-ignore
+          await this.state.osmoAccount.delegate(
+            validatorAddress,
+            BigInt(stakeAmount),
+          );
+
+          seat.exit();
+        },
       },
       invitationMakers: {
         // "method" and "args" can be used to invoke methods of localAccount obj
@@ -153,6 +217,20 @@ export const prepareStakeManagementKit = (
               case 'fundLCA': {
                 const { give } = seat.getProposal();
                 const vow = holder.fundLCA(seat, give);
+                return vowTools.when(vow, (res) => {
+                  seat.exit();
+                  return res;
+                });
+              }
+              case 'fundOsmo': {
+                const vow = holder.fundOsmoAccountForStake(seat);
+                return vowTools.when(vow, (res) => {
+                  seat.exit();
+                  return res;
+                });
+              }
+              case 'stakeOsmo': {
+                const vow = holder.stakeOnOsmosis(seat, args[0]);
                 return vowTools.when(vow, (res) => {
                   seat.exit();
                   return res;

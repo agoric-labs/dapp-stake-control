@@ -1,0 +1,11 @@
+sequenceDiagram
+    title: Restake On Reward
+    participant SMK as Portfolio
+    participant timer as Timer
+    participant OsmosisWallet as Osmosis ICA
+
+    timer ->> SMK: wake
+    SMK -->> OsmosisWallet: QueryDelegationTotalRewardsRequest
+    OsmosisWallet -->> SMK: [12.35 OSMO on osmovaloper1sdlfkj]...
+    SMK -->> OsmosisWallet: delegate([12.35 OSMO, osmovaloper1sdlfkj]...)
+    OsmosisWallet -->> SMK: ack

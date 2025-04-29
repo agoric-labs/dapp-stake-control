@@ -1,0 +1,11 @@
+sequenceDiagram
+    title: Stake On Receipt
+    participant SMK as Portfolio
+    participant timer as Timer
+    participant OsmosisWallet as Osmosis ICA
+
+    timer ->> SMK: wake
+    SMK -->> OsmosisWallet: getBalances()
+    OsmosisWallet -->> SMK: 300 OSMO
+    SMK -->> OsmosisWallet: delegate(300 OSMO, chosenValidator)
+    OsmosisWallet -->> SMK: ack
