@@ -1,0 +1,111 @@
+.dark-form-container {
+  max-width: 500px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: #1e1e1e;
+  border-radius: 12px;
+  color: #e0e0e0;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.dark-title {
+  text-align: center;
+  font-size: 28px;
+  margin-bottom: 1.5rem;
+  color: #ffffff;
+}
+
+.dark-dropdown {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: #2b2b2b;
+  color: #f1f1f1;
+  border: 1px solid #444;
+  margin-bottom: 1.5rem;
+}
+
+.dark-dropdown option {
+  background-color: #2b2b2b;
+  color: #f1f1f1;
+}
+
+.dark-card {
+  background-color: #2a2a2a;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #444;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+}
+
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1rem 0;
+  font-size: 16px;
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.button-group button {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background-color: #3a3a3a;
+  color: #ccc;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.button-group button:hover:not(:disabled) {
+  background-color: #555;
+  color: #fff;
+}
+
+.button-group button.active {
+  background-color: #0070f3;
+  color: #fff;
+  border-color: #0070f3;
+}
+
+.button-group button:disabled {
+  background-color: #2b2b2b;
+  color: #777;
+  cursor: not-allowed;
+  border-color: #333;
+}
+
+.submit-wrapper {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.submit-button {
+  background-color: #0070f3;
+  color: #ffffff;
+  padding: 12px 30px;
+  font-size: 18px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.25s ease;
+}
+
+.submit-button:hover {
+  background-color: #0058c0;
+}
+
+.submit-button:active {
+  background-color: #0043a1;
+}
+
+.submit-button:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+}
