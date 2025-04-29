@@ -1,31 +1,105 @@
+import { AmountShape, RatioShape } from '@agoric/ertp/src/typeGuards.js';
+import {
+  ChainInfoShape,
+  DenomDetailShape,
+  DenomShape,
+  OrchestrationPowersShape,
+} from '@agoric/orchestration';
 import { M } from '@endo/patterns';
 
 /**
  * @import {TypedPattern} from '@agoric/internal';
- * @import {CopySet} from '@endo/patterns';
+ * @import {StkCTerms} from './stake.contract';
+ * @import {Brand, NatValue} from '@agoric/ertp';
  */
 
 /**
+ * @enum {(typeof PollingFrequency)[keyof typeof PollingFrequency]}
+ */
+export const PollingFrequency = /** @type {const} */ ({
+  daily: 'daily',
+  weekly: 'weekly',
+});
+harden(PollingFrequency);
+
+/**
+ * @enum {(typeof ReceiptAction)[keyof typeof ReceiptAction]}
+ */
+export const ReceiptAction = /** @type {const} */ ({
+  stake: 'stake',
+});
+harden(PollingFrequency);
+
+/**
+ * @enum {(typeof RewardsAction)[keyof typeof RewardsAction]}
+ */
+export const RewardsAction = /** @type {const} */ ({
+  restake: 'restake',
+});
+harden(PollingFrequency);
+
+/**
  * @typedef {{
- *   freqStake?: 'daily' | 'weekly';
- *   freqRestake?: 'daily' | 'weekly';
- *   onReceipt?: CopySet<'stake'>;
- *   onRewards?: CopySet<'restake'>;
+ *   freq?: PollingFrequency;
+ *   onReceipt?: Array<ReceiptAction>;
+ *   onRewards?: Array<RewardsAction>;
  * }} RemoteConfig
  *
  * @typedef {{ [chainName: string]: RemoteConfig}} PortfolioConfig
  */
 
-/** @type {TypedPattern<ProfileConfig>} */
-export const PortfolioConfigShape = M.recordOf(
-  M.string(),
-  M.splitRecord(
-    {},
-    {
-      freqStake: M.or('daily', 'weekly'),
-      freqRestake: M.or('daily', 'weekly'),
-      onReceipt: M.setOf(M.or('stake')),
-      onRewards: M.setOf(M.or('restake')),
-    },
-  ),
+const { values } = Object;
+
+/** @type {TypedPattern<RemoteConfig>} */
+export const RemoteConfigShape = M.splitRecord(
+  {},
+  {
+    freq: M.or(...values(PollingFrequency)),
+    onReceipt: M.arrayOf(M.or(...values(ReceiptAction))),
+    onRewards: M.arrayOf(M.or(...values(RewardsAction))),
+  },
 );
+harden(RemoteConfigShape);
+
+/** @type {TypedPattern<PortfolioConfig>} */
+export const PortfolioConfigShape = M.recordOf(M.string(), RemoteConfigShape);
+
+/** @type {TypedPattern<StkCTerms>} */
+export const customTermsShape = M.splitRecord(
+  { portfolioFee: AmountShape },
+  { commission: RatioShape },
+);
+harden(customTermsShape);
+
+export const privateArgsShape = M.splitRecord(
+  {
+    // @ts-expect-error TypedPattern not recognized as record
+    ...OrchestrationPowersShape,
+    marshaller: M.remotable('Marshaller'),
+    chainInfo: M.recordOf(M.string(), ChainInfoShape),
+    storageNode: M.remotable('StorageNode'),
+  },
+  {
+    assetInfo: M.arrayOf([DenomShape, DenomDetailShape]),
+  },
+);
+harden(privateArgsShape);
+
+/**
+ * @param {Brand} brand
+ * @param {NatValue} [min]
+ */
+const makeAmountShape = (brand, min = undefined) =>
+  harden({ brand, value: typeof min === 'undefined' ? M.nat() : M.gte(min) });
+
+/** @param {StkCTerms} ct */
+export const makeProposalShapes = (ct) => {
+  return harden({
+    makePortfolio: M.splitRecord({
+      give: M.splitRecord(
+        { Fee: M.gte(ct.portfolioFee) },
+        { Retainer: makeAmountShape(ct.portfolioFee.brand) },
+      ),
+    }),
+  });
+};
