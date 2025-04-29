@@ -76,9 +76,7 @@ export const startStakeManagement = async (
       localchain,
       marshaller,
       orchestrationService: cosmosInterchainService,
-      storageNode: E(NonNullish(await chainStorage)).makeChildNode(
-        'stakeManagement',
-      ),
+      storageNode: E(NonNullish(await chainStorage)).makeChildNode('StkC'),
       timerService: chainTimerService,
       chainInfo,
       assetInfo,
