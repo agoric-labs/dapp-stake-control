@@ -1,13 +1,19 @@
-import type {
-  StartParams,
-  Installation,
-} from '@agoric/zoe/src/zoeService/utils.js';
-import { setUpZoeForTest } from '@agoric/zoe/tools/setup-zoe.js';
-import { E } from '@endo/far';
+import type { Brand, Purse } from '@agoric/ertp';
 import { deeplyFulfilledObject, NonNullish } from '@agoric/internal';
 import type { OfferSpec } from '@agoric/smart-wallet/src/offers.js';
 import type { VowTools } from '@agoric/vow';
-import type { ZoeService, PaymentKeywordRecord } from '@agoric/zoe';
+import type {
+  Invitation,
+  IssuerKeywordRecord,
+  PaymentKeywordRecord,
+  ZoeService,
+} from '@agoric/zoe';
+import type {
+  Installation,
+  StartParams,
+} from '@agoric/zoe/src/zoeService/utils.js';
+import { setUpZoeForTest } from '@agoric/zoe/tools/setup-zoe.js';
+import { E } from '@endo/far';
 import { objectMap } from '@endo/patterns';
 
 // adapted from https://github.com/Agoric/agoric-sdk/blob/e3f38fcfaf456883731e5f1a609f3096e794f31d/packages/boot/test/smartWallet/wallet-fun.test.ts
@@ -61,7 +67,7 @@ export const executeOffer = async (
   const payments = (proposal.give
     ? await deeplyFulfilledObject(
         objectMap(proposal.give, (amt) =>
-          NonNullish(providePurse)(amt.brand).withdraw(amt),
+          NonNullish(providePurse, 'providePurse')(amt.brand).withdraw(amt),
         ),
       )
     : {}) as unknown as PaymentKeywordRecord;
