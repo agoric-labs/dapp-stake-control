@@ -47,9 +47,10 @@ const StakingKitStateShape = {
   assets: M.any(),
   remoteChainInfo: M.any(),
   stakePlan: M.splitRecord({
-    freq: M.string(),
-    onReceipt: M.arrayOf(M.string()),
-    onRewards: M.arrayOf(M.string()),
+    freqStake: M.or('daily', 'weekly'),
+    freqRestake: M.or('daily', 'weekly'),
+    onReceipt: M.setOf(M.or('stake')),
+    onRewards: M.setOf(M.or('restake')),
   }),
 };
 harden(StakingKitStateShape);

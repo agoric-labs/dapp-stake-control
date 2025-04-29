@@ -51,7 +51,7 @@ export const executeOffer = async (
   spec: OfferSpec,
   providePurse?: (b: Brand) => Purse,
 ) => {
-  const { invitationSpec, proposal } = spec;
+  const { invitationSpec, proposal, offerArgs } = spec;
   assert.equal(invitationSpec.source, 'contract', 'not supported');
   const { instance, publicInvitationMaker, invitationArgs } = invitationSpec;
   const invitation: Invitation = await E(E(zoe).getPublicFacet(instance))[
@@ -65,7 +65,7 @@ export const executeOffer = async (
         ),
       )
     : {}) as unknown as PaymentKeywordRecord;
-  const seat = await E(zoe).offer(invitation, proposal, payments);
+  const seat = await E(zoe).offer(invitation, proposal, payments, offerArgs);
   const result = await when(E(seat).getOfferResult());
   const payouts = await E(seat).getPayouts();
   return { result, payouts };
