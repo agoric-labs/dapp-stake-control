@@ -6,7 +6,7 @@ import { withOrchestration } from '@agoric/orchestration/src/utils/start-helper.
 import { registerChainsAndAssets } from '@agoric/orchestration/src/utils/chain-hub-helper.js';
 import { InvitationShape } from '@agoric/zoe/src/typeGuards.js';
 import { PortfolioConfigShape } from './typeGuards.js';
-import * as lcaFlows from './create-lca.flows.js';
+import * as makeStakingPortfolioFlows from './make-portfolio.flows.js';
 import { prepareStakeManagementKit } from './staking-kit.js';
 import { makeTracer } from '@agoric/internal';
 import fetchedChainInfo from '@agoric/orchestration/src/fetched-chain-info.js';
@@ -48,7 +48,11 @@ export const contract = async (
   registerChainsAndAssets(
     chainHub,
     zcf.getTerms().brands,
-    { agoric: fetchedChainInfo.agoric, osmosis: fetchedChainInfo.osmosis },
+    {
+      agoric: fetchedChainInfo.agoric,
+      osmosis: fetchedChainInfo.osmosis,
+      noble: fetchedChainInfo.noble,
+    },
     privateArgs.assetInfo,
   );
 
@@ -69,7 +73,7 @@ export const contract = async (
     },
   );
 
-  const { createAndMonitorLCA } = orchestrateAll(lcaFlows, {
+  const { makeStakingPortfolio } = orchestrateAll(makeStakingPortfolioFlows, {
     makeStakeManagementKit,
     log,
   });
@@ -85,7 +89,7 @@ export const contract = async (
       /** @param {PortfolioConfig} config */
       makeStakingPortfolio(config) {
         trace('makeStakingPortfolio(', config, ')');
-        return zcf.makeInvitation(createAndMonitorLCA, 'makeLCA', undefined);
+        return zcf.makeInvitation(makeStakingPortfolio, 'makeLCA', undefined);
       },
     },
   );
