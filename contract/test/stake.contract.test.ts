@@ -15,21 +15,23 @@ test('onboarding: create staking portfolio', async (t) => {
   });
   const { instance, zoe } = startKit;
 
-  const config: PortfolioConfig = harden({
+  const offerArgs: PortfolioConfig = {
     osmosis: {
-      freq: 'daily',
+      freqStake: 'daily',
+      freqRestake: 'daily',
       onReceipt: makeCopySet(['stake']),
       onRewards: makeCopySet(['restake']),
     },
-  });
+  };
+
   const spec: OfferSpec = {
     id: 'msp-1',
     invitationSpec: {
       source: 'contract',
       instance,
       publicInvitationMaker: 'makeStakingPortfolio',
-      invitationArgs: [config],
     },
+    offerArgs,
     proposal: {},
   };
   t.log(spec);

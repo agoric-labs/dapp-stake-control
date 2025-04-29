@@ -7,7 +7,8 @@ import { M } from '@endo/patterns';
 
 /**
  * @typedef {{
- *   freq?: 'daily' | 'weekly';
+ *   freqStake?: 'daily' | 'weekly';
+ *   freqRestake?: 'daily' | 'weekly';
  *   onReceipt?: CopySet<'stake'>;
  *   onRewards?: CopySet<'restake'>;
  * }} RemoteConfig
@@ -21,7 +22,8 @@ export const PortfolioConfigShape = M.recordOf(
   M.splitRecord(
     {},
     {
-      freq: M.or('daily', 'weekly'),
+      freqStake: M.or('daily', 'weekly'),
+      freqRestake: M.or('daily', 'weekly'),
       onReceipt: M.setOf(M.or('stake')),
       onRewards: M.setOf(M.or('restake')),
     },
