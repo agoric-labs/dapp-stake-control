@@ -1,10 +1,11 @@
 // @ts-check
-import { M, mustMatch } from '@endo/patterns';
-import { VowShape } from '@agoric/vow';
 import { makeTracer } from '@agoric/internal';
+import { CosmosChainAddressShape } from '@agoric/orchestration';
+import { VowShape } from '@agoric/vow';
 import { atob } from '@endo/base64';
 import { Fail } from '@endo/errors';
-import { CosmosChainAddressShape } from '@agoric/orchestration';
+import { M, mustMatch } from '@endo/patterns';
+import { RemoteConfigShape } from './typeGuards.js';
 
 const trace = makeTracer('StkCTap');
 
@@ -16,6 +17,7 @@ const trace = makeTracer('StkCTap');
  * @import {FungibleTokenPacketData} from '@agoric/cosmic-proto/ibc/applications/transfer/v2/packet.js';
  * @import {ZoeTools} from '@agoric/orchestration/src/utils/zoe-tools.js';
  * @import { ZCF, ZCFSeat } from '@agoric/zoe/src/zoeService/zoe.js';
+ * @import {RemoteConfig} from './typeGuards.js';
  */
 
 /**
@@ -24,12 +26,7 @@ const trace = makeTracer('StkCTap');
  *   remoteChainAddress: CosmosChainAddress;
  *   assets: any;
  *   remoteChainInfo: any;
- *   stakePlan: {
- *     freqStake: 'daily' | 'weekly';
- *     freqRestake: 'daily' | 'weekly';
- *     onReceipt: string[];
- *     onRewards: string[];
- *   };
+ *   stakePlan: RemoteConfig;
  * }} StakingTapState
  */
 
@@ -43,15 +40,10 @@ const InvitationMakerI = M.interface('invitationMaker', {
 
 const StakingKitStateShape = {
   remoteChainAddress: CosmosChainAddressShape,
-  remoteAccount: M.remotable('OrchestrationAccount<any>'),
+  remoteAccount: M.remotable('OrchestrationAccount'),
   assets: M.any(),
   remoteChainInfo: M.any(),
-  stakePlan: M.splitRecord({
-    freqStake: M.or('daily', 'weekly'),
-    freqRestake: M.or('daily', 'weekly'),
-    onReceipt: M.setOf(M.or('stake')),
-    onRewards: M.setOf(M.or('restake')),
-  }),
+  stakePlan: RemoteConfigShape,
 };
 harden(StakingKitStateShape);
 

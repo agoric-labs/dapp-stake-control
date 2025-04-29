@@ -1,16 +1,16 @@
 // @ts-check
+import { mustMatch } from '@agoric/internal';
 import { Fail } from '@endo/errors';
+import { PortfolioConfigShape } from './typeGuards.js';
 
 const supportedChains = ['osmosis', 'cosmoshub'];
-const allowedFrequencies = ['daily', 'weekly'];
-const { entries } = Object;
+const { entries, values } = Object;
 
 /**
- * @import {GuestOf} from '@agoric/async-flow';
  * @import {Orchestrator, OrchestrationFlow} from '@agoric/orchestration';
  * @import {MakeStakeManagementKit} from './staking-kit.js';
- * @import {Vow} from '@agoric/vow';
  * @import { ZCFSeat } from '@agoric/zoe/src/zoeService/zoe.js';
+ * @import {PortfolioConfig} from './typeGuards.js'
  */
 
 /**
@@ -18,17 +18,10 @@ const { entries } = Object;
  * @param {Orchestrator} orch
  * @param {{
  *   makeStakeManagementKit: MakeStakeManagementKit;
- *   log: GuestOf<(msg: string) => Vow<void>>;
+ *   log: (msg: string) => Promise<void>;
  * }} ctx
  * @param {ZCFSeat} seat
- * @param {{
- *   [chainName: string]: {
- *     freqStake: 'daily' | 'weekly';
- *     freqRestake: 'daily' | 'weekly';
- *     onReceipt: string[];
- *     onRewards: string[];
- *   }
- * }} offerArgs
+ * @param {PortfolioConfig} offerArgs
  */
 export const makeStakingPortfolio = async (
   orch,
@@ -37,21 +30,12 @@ export const makeStakingPortfolio = async (
   offerArgs,
 ) => {
   void log('Inside makeStakingPortfolio');
+  mustMatch(offerArgs, PortfolioConfigShape);
+  entries(offerArgs).length === 1 || Fail`only 1 remote currently supported`;
   const [[chainName, plan]] = entries(offerArgs);
-  const { freqStake, freqRestake, onReceipt, onRewards } = plan;
   console.log({ chainName, plan });
 
-  if (!supportedChains.includes(chainName)) {
-    Fail`Unsupported chain: ${chainName}`;
-  }
-
-  if (!allowedFrequencies.includes(freqStake)) {
-    Fail`Invalid freqStake: ${freqStake}. Must be "daily" or "weekly".`;
-  }
-
-  if (!allowedFrequencies.includes(freqRestake)) {
-    Fail`Invalid freqRestake: ${freqRestake}. Must be "daily" or "weekly".`;
-  }
+  supportedChains.includes(chainName) || Fail`Unsupported chain: ${chainName}`;
 
   const [agoric, remoteChain] = await Promise.all([
     orch.getChain('agoric'),
@@ -75,7 +59,7 @@ export const makeStakingPortfolio = async (
     remoteChainAddress,
     assets,
     remoteChainInfo: info,
-    stakePlan: { freqStake, freqRestake, onReceipt, onRewards },
+    stakePlan: plan,
   });
 
   seat.exit();
