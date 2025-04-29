@@ -1,40 +1,34 @@
 // @ts-check
 import { M, mustMatch } from '@endo/patterns';
 import { VowShape } from '@agoric/vow';
-import { makeTracer, NonNullish } from '@agoric/internal';
+import { makeTracer } from '@agoric/internal';
 import { atob } from '@endo/base64';
 import { Fail } from '@endo/errors';
-import { ChainAddressShape } from '@agoric/orchestration';
+import { CosmosChainAddressShape } from '@agoric/orchestration';
 
-const trace = makeTracer('StakingTap');
-const { entries } = Object;
+const trace = makeTracer('StkCTap');
 
 /**
  * @import {VTransferIBCEvent} from '@agoric/vats';
  * @import {Vow, VowTools} from '@agoric/vow';
  * @import {Zone} from '@agoric/zone';
- * @import {ChainAddress, OrchestrationAccount} from '@agoric/orchestration';
+ * @import {CosmosChainAddress, OrchestrationAccount} from '@agoric/orchestration';
  * @import {FungibleTokenPacketData} from '@agoric/cosmic-proto/ibc/applications/transfer/v2/packet.js';
  * @import {ZoeTools} from '@agoric/orchestration/src/utils/zoe-tools.js';
+ * @import { ZCF, ZCFSeat } from '@agoric/zoe/src/zoeService/zoe.js';
  */
 
 /**
  * @typedef {{
- *   localAccount: OrchestrationAccount<{ chainId: 'agoric' }>;
- *   localChainAddress: ChainAddress;
  *   osmoAccount: OrchestrationAccount<{ chainId: 'osmosis-1' }>;
- *   osmoChainAddress: ChainAddress;
+ *   osmoChainAddress: CosmosChainAddress;
  *   assets: any;
  *   remoteChainInfo: any;
  * }} StakingTapState
  */
 
 const StakeManagementI = M.interface('holder', {
-  getLocalAddress: M.call().returns(M.any()),
-  send: M.call(M.any(), M.any()).returns(M.any()),
   stakeOnOsmosis: M.call(M.any(), M.any()).returns(M.any()),
-  fundLCA: M.call(M.any(), M.any()).returns(VowShape),
-  fundOsmoAccountForStake: M.call(M.any(), M.any()).returns(VowShape),
 });
 
 const InvitationMakerI = M.interface('invitationMaker', {
@@ -42,9 +36,7 @@ const InvitationMakerI = M.interface('invitationMaker', {
 });
 
 const StakingKitStateShape = {
-  localChainAddress: ChainAddressShape,
-  localAccount: M.remotable('OrchestrationAccount<{chainId:"agoric-3"}>'),
-  osmoChainAddress: ChainAddressShape,
+  osmoChainAddress: CosmosChainAddressShape,
   osmoAccount: M.remotable('OrchestrationAccount<{chainId:"osmosis-1"}>'),
   assets: M.any(),
   remoteChainInfo: M.any(),
@@ -60,10 +52,7 @@ harden(StakingKitStateShape);
  *   zoeTools: ZoeTools;
  * }} powers
  */
-export const prepareStakeManagementKit = (
-  zone,
-  { zcf, vowTools, log, zoeTools },
-) => {
+export const prepareStakeManagementKit = (zone, { zcf, vowTools, log }) => {
   return zone.exoClassKit(
     'StakeManagementTapKit',
     {
@@ -117,58 +106,6 @@ export const prepareStakeManagementKit = (
         },
       },
       holder: {
-        getLocalAddress() {
-          return this.state.localAccount.getAddress().value;
-        },
-        /**
-         * Sends tokens from the local account to a specified Cosmos chain
-         * address.
-         *
-         * @param {import('@agoric/orchestration').ChainAddress} toAccount
-         * @param {import('@agoric/orchestration').AmountArg} amount
-         * @returns {Promise<string>} A success message upon completion.
-         */
-        async send(toAccount, amount) {
-          await this.state.localAccount.send(toAccount, amount);
-          return 'transfer success';
-        },
-        /**
-         * @param {ZCFSeat} seat
-         * @param {any} give
-         */
-        fundLCA(seat, give) {
-          seat.hasExited() && Fail`The seat cannot be exited.`;
-          return zoeTools.localTransfer(seat, this.state.localAccount, give);
-        },
-        /**
-         * @param {ZCFSeat} seat
-         */
-        async fundOsmoAccountForStake(seat) {
-          seat.hasExited() && Fail`The seat cannot be exited.`;
-          const { give } = seat.getProposal();
-          await zoeTools.localTransfer(seat, this.state.localAccount, give);
-
-          const [[_kw, amt]] = entries(give);
-          amt.value > 0n || Fail`IBC transfer amount must be greater than zero`;
-          trace('_kw, amt', _kw, amt);
-
-          const { denom } = NonNullish(
-            this.state.assets.find((a) => a.brand === amt.brand),
-            `${amt.brand} not registered in vbank`,
-          );
-
-          const { chainId } = this.state.remoteChainInfo;
-
-          await this.state.localAccount.send(
-            {
-              value: String(this.state.osmoChainAddress),
-              chainId: chainId,
-              encoding: 'bech32',
-            },
-            { denom: denom, value: amt.value },
-          );
-          seat.exit();
-        },
         /**
          * @param {ZCFSeat} seat
          * @param {{
@@ -200,35 +137,6 @@ export const prepareStakeManagementKit = (
           const continuingStakeManagementHandler = async (seat) => {
             const { holder } = this.facets;
             switch (method) {
-              case 'getLocalAddress': {
-                const vow = holder.getLocalAddress();
-                return vowTools.when(vow, (res) => {
-                  seat.exit();
-                  return res;
-                });
-              }
-              case 'send': {
-                const vow = holder.send(args[0], args[1]);
-                return vowTools.when(vow, (res) => {
-                  seat.exit();
-                  return res;
-                });
-              }
-              case 'fundLCA': {
-                const { give } = seat.getProposal();
-                const vow = holder.fundLCA(seat, give);
-                return vowTools.when(vow, (res) => {
-                  seat.exit();
-                  return res;
-                });
-              }
-              case 'fundOsmo': {
-                const vow = holder.fundOsmoAccountForStake(seat);
-                return vowTools.when(vow, (res) => {
-                  seat.exit();
-                  return res;
-                });
-              }
               case 'stakeOsmo': {
                 const vow = holder.stakeOnOsmosis(seat, args[0]);
                 return vowTools.when(vow, (res) => {

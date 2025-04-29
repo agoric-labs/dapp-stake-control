@@ -19,6 +19,7 @@ const trace = makeTracer('StkC');
  * @import {CosmosChainInfo, Denom, DenomDetail} from '@agoric/orchestration';
  * @import {Marshaller, StorageNode} from '@agoric/internal/src/lib-chainStorage.js';
  * @import {PortfolioConfig} from './typeGuards.js';
+ * @import { ZCF } from '@agoric/zoe/src/zoeService/zoe.js';
  */
 
 /**
@@ -58,7 +59,7 @@ export const contract = async (
   const log = (msg) => vowTools.watch(E(logNode).setValue(msg));
 
   const makeStakeManagementKit = prepareStakeManagementKit(
-    zone.subZone('stakeManagementTap'),
+    zone.subZone('StkCTap'),
     {
       zcf,
       vowTools,
@@ -70,7 +71,6 @@ export const contract = async (
   const { createAndMonitorLCA } = orchestrateAll(lcaFlows, {
     makeStakeManagementKit,
     log,
-    zoeTools,
   });
 
   const publicFacet = zone.exo(
