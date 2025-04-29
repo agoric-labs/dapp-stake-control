@@ -48,6 +48,7 @@ export const contract = async (
   registerChainsAndAssets(
     chainHub,
     zcf.getTerms().brands,
+    // TODO: replace fetchedChainInfo
     {
       agoric: fetchedChainInfo.agoric,
       osmosis: fetchedChainInfo.osmosis,
