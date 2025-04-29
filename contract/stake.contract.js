@@ -4,8 +4,13 @@ import { E } from '@endo/far';
 import { prepareChainHubAdmin } from '@agoric/orchestration/src/exos/chain-hub-admin.js';
 import { withOrchestration } from '@agoric/orchestration/src/utils/start-helper.js';
 import { registerChainsAndAssets } from '@agoric/orchestration/src/utils/chain-hub-helper.js';
+import { InvitationShape } from '@agoric/zoe/src/typeGuards.js';
+import { PortfolioConfigShape } from './typeGuards.js';
 import * as lcaFlows from './create-lca.flows.js';
 import { prepareStakeManagementKit } from './staking-kit.js';
+import { makeTracer } from '@agoric/internal';
+
+const trace = makeTracer('StkC');
 
 /**
  * @import {Remote, Vow} from '@agoric/vow';
@@ -13,6 +18,7 @@ import { prepareStakeManagementKit } from './staking-kit.js';
  * @import {OrchestrationPowers, OrchestrationTools} from '@agoric/orchestration/src/utils/start-helper.js';
  * @import {CosmosChainInfo, Denom, DenomDetail} from '@agoric/orchestration';
  * @import {Marshaller, StorageNode} from '@agoric/internal/src/lib-chainStorage.js';
+ * @import {PortfolioConfig} from './typeGuards.js';
  */
 
 /**
@@ -68,12 +74,16 @@ export const contract = async (
   });
 
   const publicFacet = zone.exo(
-    'Send PF',
-    M.interface('Send PF', {
-      createAndMonitorLCA: M.callWhen().returns(M.any()),
+    'Staking API',
+    M.interface('Staking API', {
+      makeStakingPortfolio: M.callWhen()
+        .optional(PortfolioConfigShape)
+        .returns(InvitationShape),
     }),
     {
-      createAndMonitorLCA() {
+      /** @param {PortfolioConfig} config */
+      makeStakingPortfolio(config) {
+        trace('makeStakingPortfolio(', config, ')');
         return zcf.makeInvitation(createAndMonitorLCA, 'makeLCA', undefined);
       },
     },
