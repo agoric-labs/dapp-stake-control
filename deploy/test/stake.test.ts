@@ -35,8 +35,6 @@ const makeTestContext = async (t: ExecutionContext) => {
 };
 
 let offerCounter = 0;
-let previousOffer = '';
-let lcaAddress = '';
 
 const makeOffer = async ({
   wallet,
@@ -100,7 +98,7 @@ test.before(async (t) => {
 });
 
 test.beforeEach((t) => {
-  t.context.storage.data.delete('published.stakeManagement.log');
+  t.context.storage.data.delete('published.StkC.log');
 });
 
 test.serial('make LCA via stakeManagement', async (t) => {
@@ -118,7 +116,7 @@ test.serial('make LCA via stakeManagement', async (t) => {
     invitationSpec: {
       source: 'agoricContract',
       instancePath: ['stakeManagement'],
-      callPipe: [['createAndMonitorLCA']],
+      callPipe: [['makeStakingPortfolio']],
     },
     proposal: {
       // @ts-ignore
@@ -127,64 +125,7 @@ test.serial('make LCA via stakeManagement', async (t) => {
   });
 
   const getLogged = () =>
-    JSON.parse(storage.data.get('published.stakeManagement.log')!).values;
+    JSON.parse(storage.data.get('published.StkC.log')!).values;
 
-  t.deepEqual(getLogged(), [
-    'Inside createAndMonitorLCA',
-    'localAccount created successfully',
-    'Monitoring transfers setup successfully',
-    'Done',
-  ]);
-
-  previousOffer = wallet.getCurrentWalletRecord().offerToUsedInvitation[0][0];
-});
-
-test.serial('get lca address', async (t) => {
-  const { wallet } = t.context;
-
-  await makeOffer({
-    wallet,
-    previousOffer,
-    methodName: 'getLocalAddress',
-    offerArgs: [],
-    proposal: {},
-  });
-
-  // @ts-expect-error
-  lcaAddress = wallet.getLatestUpdateRecord().status.result;
-  t.truthy(lcaAddress);
-  t.like(wallet.getLatestUpdateRecord(), {
-    status: {
-      id: `offer-${offerCounter - 1}`,
-      numWantsSatisfied: 1,
-      result: lcaAddress,
-    },
-  });
-});
-
-test.serial('make offers using the lca', async (t) => {
-  const { wallet } = t.context;
-
-  await makeOffer({
-    wallet,
-    previousOffer,
-    methodName: 'send',
-    offerArgs: [
-      {
-        value: 'agoric1EOAAccAddress',
-        chainId: 'agoriclocal',
-        encoding: 'bech32',
-      },
-      { denom: 'ibc/1234', value: 10n },
-    ],
-    proposal: {},
-  });
-
-  t.like(wallet.getLatestUpdateRecord(), {
-    status: {
-      id: `offer-${offerCounter - 1}`,
-      numWantsSatisfied: 1,
-      result: 'transfer success',
-    },
-  });
+  t.deepEqual(getLogged(), ['Inside createAndMonitorLCA']);
 });

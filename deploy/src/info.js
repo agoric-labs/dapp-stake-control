@@ -12,7 +12,10 @@ const agoricData = {
 
 export const chainInfo = JSON.stringify({
   agoric: {
+    bech32Prefix: 'agoric',
     chainId: 'agoriclocal',
+    icqEnabled: false,
+    namespace: 'cosmos',
     stakingTokens: [
       {
         denom: 'ubld',
@@ -41,7 +44,10 @@ export const chainInfo = JSON.stringify({
   },
 
   osmosis: {
-    chainId: 'osmo-test-5',
+    bech32Prefix: 'osmo',
+    chainId: 'osmosis-1',
+    icqEnabled: true,
+    namespace: 'cosmos',
     stakingTokens: [
       {
         denom: 'uosmo',

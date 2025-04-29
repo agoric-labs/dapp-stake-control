@@ -9,6 +9,7 @@ import { PortfolioConfigShape } from './typeGuards.js';
 import * as lcaFlows from './create-lca.flows.js';
 import { prepareStakeManagementKit } from './staking-kit.js';
 import { makeTracer } from '@agoric/internal';
+import fetchedChainInfo from '@agoric/orchestration/src/fetched-chain-info.js';
 
 const trace = makeTracer('StkC');
 
@@ -47,7 +48,7 @@ export const contract = async (
   registerChainsAndAssets(
     chainHub,
     zcf.getTerms().brands,
-    privateArgs.chainInfo,
+    { agoric: fetchedChainInfo.agoric, osmosis: fetchedChainInfo.osmosis },
     privateArgs.assetInfo,
   );
 

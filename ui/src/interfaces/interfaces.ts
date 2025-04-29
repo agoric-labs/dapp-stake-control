@@ -31,7 +31,7 @@ export interface BalanceCheckParams {
 export interface AppState {
   wallet?: Wallet;
   contractInstance?: unknown;
-   brands?: Record<string, unknown>;
+  brands?: Record<string, unknown>;
   loading: boolean;
   error?: string;
   tab: number;

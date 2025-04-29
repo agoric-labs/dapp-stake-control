@@ -51,7 +51,7 @@ export const MakeAccount = () => {
                 reject(new Error('Offer was rejected'));
                 break;
             }
-          }
+          },
         );
       });
 
@@ -75,10 +75,10 @@ export const MakeAccount = () => {
   // )[0];
 
   return (
-    <div className='dashboard-container'>
-      <div className='dashboard'>
-        <div className='transfer-form'>
-          <button className='invoke-button' onClick={makeOffer}>
+    <div className="dashboard-container">
+      <div className="dashboard">
+        <div className="transfer-form">
+          <button className="invoke-button" onClick={makeOffer}>
             Setup LCA
           </button>
         </div>
