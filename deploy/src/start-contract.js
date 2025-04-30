@@ -52,6 +52,7 @@ export const startStakeManagement = async (
       cosmosInterchainService,
       localchain,
       startUpgradable,
+      chainTimerService: chainTimerServiceP,
     },
     brand: {
       consume: { BLD: bldBrandP },
@@ -69,6 +70,9 @@ export const startStakeManagement = async (
   { options: { chainInfo, assetInfo } },
 ) => {
   trace(startStakeManagement.name);
+
+  const timerService = await chainTimerServiceP;
+  assert(timerService, `timerService is missing`);
 
   const terms = {
     portfolioFee: AmountMath.make(await bldBrandP, 10n * 1_000_000n),
@@ -88,6 +92,7 @@ export const startStakeManagement = async (
       timerService: chainTimerService,
       chainInfo,
       assetInfo,
+      timerService,
     }),
   );
 
@@ -135,6 +140,7 @@ export const getManifest = ({ restoreRef }, { installationRef, options }) => {
           cosmosInterchainService: true,
           localchain: true,
           startUpgradable: true,
+          chainTimerService: true,
         },
         brand: { consume: { BLD: true } },
         installation: {

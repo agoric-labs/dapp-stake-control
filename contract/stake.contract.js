@@ -25,6 +25,7 @@ import {
  * @import {PortfolioConfig} from './typeGuards.js';
  * @import { ZCF } from '@agoric/zoe/src/zoeService/zoe.js';
  * @import {Amount, Ratio} from '@agoric/ertp';
+ * @import {TimerService} from '@agoric/time';
  */
 
 const trace = makeTracer('StkC');
@@ -51,6 +52,7 @@ harden(meta);
  *   chainInfo: Record<string, ChainInfo>;
  *   assetInfo?: [Denom, DenomDetail & { brandKey?: string }][];
  *   storageNode: Remote<StorageNode>;
+ *   timerService: TimerService;
  * }} privateArgs
  * @param {Zone} zone
  * @param {OrchestrationTools} tools
@@ -63,6 +65,9 @@ export const contract = async (
 ) => {
   console.log('Inside Contract');
   const terms = zcf.getTerms();
+
+  const { chainInfo, assetInfo, timerService } = privateArgs;
+
   console.log('Registering Chain and Assets....');
   registerChainsAndAssets(
     chainHub,
@@ -96,6 +101,7 @@ export const contract = async (
   const { makeStakingPortfolio } = orchestrateAll(makeStakingPortfolioFlows, {
     makeStakeManagementKit,
     log,
+    timerService,
   });
 
   const proposalShapes = makeProposalShapes(terms);
