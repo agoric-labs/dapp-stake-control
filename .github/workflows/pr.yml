@@ -38,7 +38,7 @@ jobs:
 
       - name: Run contract tests
         run: |
-          cd deploy
+          cd contract
           yarn test
 
       - name: Run lint check
