@@ -1,7 +1,10 @@
 import { makeAgoricWalletConnection } from '@agoric/web-components';
+// XXX cross-package import
+import type { PortfolioConfig } from '../../../contract/typeGuards.js';
 
 export type Wallet = Awaited<ReturnType<typeof makeAgoricWalletConnection>>;
 
+// XXX  * @import {CurrentWalletRecord} from '@agoric/smart-wallet/src/smartWallet.js';
 export interface CurrentOffer {
   liveOffers: Array<unknown>;
   offerToPublicSubscriberPaths: Array<unknown>;
@@ -39,11 +42,4 @@ export interface AppState {
   latestInvitation: string;
 }
 
-export interface OfferArgsPortfolio {
-  [chainName: string]: {
-    freqStake?: 'daily' | 'weekly';
-    freqRestake?: 'daily' | 'weekly';
-    onReceipt?: string[];
-    onRewards?: string[];
-  };
-}
+export type OfferArgsPortfolio = PortfolioConfig;

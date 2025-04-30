@@ -1,8 +1,10 @@
+import { type OfferSpec } from '@agoric/smart-wallet/src/offers.js';
 import React, { useState } from 'react';
+import { toast } from 'react-toastify';
+import { MakeStakeManagementKit } from '../../../contract/staking-kit.js';
+import { TOAST_DURATION } from '../config';
 import { useAppStore } from '../state';
 import { showError, showSuccess } from '../Utils';
-import { TOAST_DURATION } from '../config';
-import { toast } from 'react-toastify';
 
 export const StakeForm = () => {
   const { wallet, loading, contractInstance, brands, latestInvitation } =
@@ -41,13 +43,16 @@ export const StakeForm = () => {
         },
       };
 
-      const args = {
+      const invitationMakerName: keyof ReturnType<MakeStakeManagementKit>['invitationMakers'] =
+        'makeStakeManagementInvitation';
+      const args: OfferSpec = {
         id: Date.now(),
         invitationSpec: {
           source: 'continuing',
           previousOffer: latestInvitation,
-          invitationMakerName: 'makeStakeManagementInvitation',
+          invitationMakerName,
           invitationArgs: harden([
+            // XXX TODO: types for method, args
             'stakeOsmo',
             [
               {
