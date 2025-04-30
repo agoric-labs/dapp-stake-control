@@ -1,5 +1,4 @@
 #! /usr/bin/env node
-import { fetchFromVStorage } from './utils.mjs';
 
 const { vStorageUrl, valueToFind } = process.env;
 
@@ -7,10 +6,33 @@ const pollIntervalMs = 5000; // 5 seconds
 const maxWaitMs = 2 * 60 * 1000; // 2 minutes
 const startTime = Date.now();
 
+export const makeFetchFromVStorage = (fetch) => {
+  return async (vStorageUrl) => {
+    const response = await fetch(vStorageUrl);
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    const { value } = await response.json();
+
+    const rawValue = JSON.parse(value)?.values?.[0];
+    if (!rawValue) {
+      throw new Error('Missing expected data in vStorage response');
+    }
+
+    const bodyString = JSON.parse(rawValue).body;
+    return JSON.parse(bodyString.slice(1));
+  };
+};
+
 let found = false;
 
 while (Date.now() - startTime < maxWaitMs) {
   try {
+    const fetchFromVStorage = makeFetchFromVStorage(fetch);
     const data = await fetchFromVStorage(vStorageUrl);
 
     for (const val of data) {
