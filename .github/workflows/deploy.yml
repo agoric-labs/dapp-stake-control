@@ -1,0 +1,51 @@
+name: Deploy StkC
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    env:
+      HOME: /home/runner/work
+
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Start Agoric Local Chain
+        run: yarn start:chain
+
+      - name: Wait for Agoric Local Chain to be ready
+        run: yarn wait-for-agd-block
+
+      - name: Install dependencies in contract/
+        run: cd contract && yarn install
+
+      - name: Install dependencies in deploy/
+        run: cd deploy && yarn install
+
+      - name: Deploy Staking contract
+        run: cd deploy && yarn deploy
+
+      - name: Verify Staking contract installation from vStorage
+        run: ./scripts/check-vstorage.mjs
+        env:
+          vStorageUrl: http://localhost:1317/agoric/vstorage/data/published.agoricNames.instance
+          valueToFind: StkC
