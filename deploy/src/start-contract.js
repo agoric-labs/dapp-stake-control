@@ -31,7 +31,6 @@ const trace = makeTracer('start StkC', true);
  *   issuer: {
  *     consume: {
  *       BLD: Issuer<'nat'>;
- *       IST: Issuer<'nat'>;
  *     };
  *   };
  * }} powers
@@ -60,7 +59,10 @@ export const startStakeManagement = async (
       produce: { StkC: produceInstance },
     },
     issuer: {
-      consume: { BLD, IST },
+      consume: { BLD },
+    },
+    brand: {
+      consume: { BLD: $BLD },
     },
   },
   { options: { chainInfo, assetInfo } },
@@ -68,7 +70,7 @@ export const startStakeManagement = async (
   trace(startStakeManagement.name);
 
   const terms = {
-    portfolioFee: AmountMath.make(await BLD, 10n * 1_000_000n),
+    portfolioFee: AmountMath.make(await $BLD, 10n * 1_000_000n),
   };
 
   const marshaller = await E(board).getReadonlyMarshaller();
@@ -115,6 +117,7 @@ export const startStakeManagement = async (
     privateArgs,
     terms,
   });
+  produceInstance.reset();
   produceInstance.resolve(instance);
   trace('done');
 };
@@ -140,7 +143,10 @@ export const getManifest = ({ restoreRef }, { installationRef, options }) => {
           produce: { StkC: true },
         },
         issuer: {
-          consume: { BLD: true, IST: true },
+          consume: { BLD: true },
+        },
+        brand: {
+          consume: { BLD: true },
         },
       },
     },
