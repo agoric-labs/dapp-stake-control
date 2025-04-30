@@ -7,33 +7,41 @@ import { showError } from '../Utils';
 import { OfferArgsPortfolio } from '../interfaces/interfaces';
 import { type OfferSpec } from '@agoric/smart-wallet/src/offers.js';
 
-const chainOptions = ['Osmosis', 'Cosmos Hub'];
+const chainOptions = ['Osmosis', 'CosmosHub'];
 
 export default function PortfolioForm() {
   const [selectedChain, setSelectedChain] = useState('');
-  const [settings, setSettings] = useState({});
+  const [portfolioConfig, setPortfolioConfig] = useState<OfferArgsPortfolio>(
+    {},
+  );
+
   const { wallet, contractInstance, brands } = useAppStore.getState();
 
-  const toggleSetting = (key) => {
-    setSettings((prev) => ({
+  const updateChainConfig = (chainName, changes) => {
+    setPortfolioConfig((prev) => ({
       ...prev,
-      [key]: !prev[key],
+      [chainName]: {
+        ...prev[chainName],
+        ...changes,
+      },
     }));
   };
 
-  const setFrequency = (key, value) => {
-    setSettings((prev) => ({
-      ...prev,
-      [`${key}Frequency`]: value,
-    }));
+  const handleChainUpdate = (e) => {
+    const chain = e.target.value;
+    setSelectedChain(chain);
+    setPortfolioConfig({
+      [chain]: { freq: '', onReceipt: [], onRewards: [] },
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form Submitted:', {
-      selectedChain,
-      settings,
-    });
+
+    const config = portfolioConfig[selectedChain];
+    if (!config) return;
+
+    console.log('Form Submitted:', portfolioConfig);
 
     let toastId: string | number | null = null;
     const brand = {
@@ -50,33 +58,16 @@ export default function PortfolioForm() {
 
       // TODO: get custom terms from vstorage
       const give = {
-        Fee: { brand: requiredBrand, value: 10n * 1000_000n },
+        Fee: { brand: requiredBrand, value: 12n * 1000_000n },
         Retainer: { brand: requiredBrand, value: 50n * 1000_000n },
       };
 
       const offerArgs: OfferArgsPortfolio = {
-        [selectedChain]: {},
+        [selectedChain]: config,
       };
 
-      const chainArgs = offerArgs[selectedChain];
-
-      if (settings.stakeFrequency) {
-        chainArgs.freq = settings.stakeFrequency;
-      }
-
-      if (settings.restakeFrequency) {
-        chainArgs.freq = settings.restakeFrequency;
-      }
-
-      if (settings.restake) {
-        chainArgs.onRewards = ['restake'];
-      }
-
-      if (settings.stake) {
-        chainArgs.onReceipt = ['stake'];
-      }
-
       console.log(offerArgs);
+
       const offer: Omit<OfferSpec, 'id'> = {
         invitationSpec: {
           source: 'contract',
@@ -116,6 +107,8 @@ export default function PortfolioForm() {
     }
   };
 
+  const config = portfolioConfig[selectedChain] || {};
+
   return (
     <form className="dark-form-container" onSubmit={handleSubmit}>
       <h2 className="dark-title">Make Portfolio</h2>
@@ -123,7 +116,7 @@ export default function PortfolioForm() {
       <select
         className="dark-dropdown"
         value={selectedChain}
-        onChange={(e) => setSelectedChain(e.target.value)}
+        onChange={handleChainUpdate}
       >
         <option value="">Select Chain</option>
         {chainOptions.map((chain) => (
@@ -141,57 +134,57 @@ export default function PortfolioForm() {
           </h3>
 
           <div className="setting-row">
-            <label>Stake when tokens arrive:</label>
-            <input
-              type="checkbox"
-              checked={settings.stake || false}
-              onChange={() => toggleSetting('stake')}
-            />
+            <label>Polling Frequency:</label>
           </div>
           <div className="button-group">
             <button
               type="button"
-              disabled={!settings.stake}
-              className={settings.stakeFrequency === 'daily' ? 'active' : ''}
-              onClick={() => setFrequency('stake', 'daily')}
+              className={config.freq === 'daily' ? 'active' : ''}
+              onClick={() =>
+                updateChainConfig(selectedChain, {
+                  freq: config.freq === 'daily' ? '' : 'daily',
+                })
+              }
             >
               Daily
             </button>
             <button
               type="button"
-              disabled={!settings.stake}
-              className={settings.stakeFrequency === 'weekly' ? 'active' : ''}
-              onClick={() => setFrequency('stake', 'weekly')}
+              className={config.freq === 'weekly' ? 'active' : ''}
+              onClick={() =>
+                updateChainConfig(selectedChain, {
+                  freq: config.freq === 'weekly' ? '' : 'weekly',
+                })
+              }
             >
               Weekly
             </button>
           </div>
 
           <div className="setting-row">
+            <label>Stake when tokens arrive:</label>
+            <input
+              type="checkbox"
+              checked={!!config.onReceipt.length}
+              onChange={() =>
+                updateChainConfig(selectedChain, {
+                  onReceipt: config.onReceipt.length ? [] : ['stake'],
+                })
+              }
+            />
+          </div>
+
+          <div className="setting-row">
             <label>Restake when rewards accrue:</label>
             <input
               type="checkbox"
-              checked={settings.restake || false}
-              onChange={() => toggleSetting('restake')}
+              checked={!!config.onRewards.length}
+              onChange={() =>
+                updateChainConfig(selectedChain, {
+                  onRewards: config.onRewards.length ? [] : ['restake'],
+                })
+              }
             />
-          </div>
-          <div className="button-group">
-            <button
-              type="button"
-              disabled={!settings.restake}
-              className={settings.restakeFrequency === 'daily' ? 'active' : ''}
-              onClick={() => setFrequency('restake', 'daily')}
-            >
-              Daily
-            </button>
-            <button
-              type="button"
-              disabled={!settings.restake}
-              className={settings.restakeFrequency === 'weekly' ? 'active' : ''}
-              onClick={() => setFrequency('restake', 'weekly')}
-            >
-              Weekly
-            </button>
           </div>
         </div>
       )}
