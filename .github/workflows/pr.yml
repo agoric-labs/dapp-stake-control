@@ -31,11 +31,6 @@ jobs:
           cd contract
           yarn install
 
-      - name: Install dependencies in deploy/
-        run: |
-          cd deploy
-          yarn install
-
       - name: Run contract tests
         run: |
           cd contract
