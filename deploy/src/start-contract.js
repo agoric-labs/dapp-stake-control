@@ -62,7 +62,7 @@ export const startStakeManagement = async (
       consume: { BLD, IST },
     },
   },
-  { options: { chainInfo, assetInfo } }
+  { options: { chainInfo, assetInfo } },
 ) => {
   trace(startStakeManagement.name);
 
@@ -77,12 +77,12 @@ export const startStakeManagement = async (
       marshaller,
       orchestrationService: cosmosInterchainService,
       storageNode: E(NonNullish(await chainStorage)).makeChildNode(
-        'stakeManagement'
+        'stakeManagement',
       ),
       timerService: chainTimerService,
       chainInfo,
       assetInfo,
-    })
+    }),
   );
 
   /** @param {() => Promise<Issuer>} p */
@@ -90,7 +90,7 @@ export const startStakeManagement = async (
     E.when(
       p(),
       (i) => i,
-      () => undefined
+      () => undefined,
     );
 
   // const osmoIssuer = await safeFulfill(() =>
