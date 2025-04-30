@@ -1,0 +1,74 @@
+name: Deploy StkC
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    env:
+      HOME: /home/runner/work
+
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Start Agoric Local Chain
+        run: docker run -d --name agoric -p 26657:26657 -p 1317:1317 -p 9090:9090 ghcr.io/agoric/agoric-3-proposals:latest
+
+      - name: Wait for Agoric Local Chain to be ready
+        env:
+          TARGET_HEIGHT: 1234
+        run: |
+          timeout 300 bash -c '
+            SLEEP=10
+            echo "Waiting for the Agoric service to be fully ready..."
+            echo "Target block height: $TARGET_HEIGHT"
+            RPC=http://localhost:26657
+            while true; do
+              response=$(curl --silent $RPC/abci_info)
+              height=$(echo $response | jq -r ".result.response.last_block_height | tonumber")
+              if [ "$height" -ge $TARGET_HEIGHT ]; then
+                echo "Service is ready! Last block height: $height"
+                break
+              else
+                echo "Waiting for last block height to reach $TARGET_HEIGHT. Current height: $height"
+              fi
+              sleep $SLEEP
+            done
+          '
+
+      - name: Install dependencies in contract/
+        run: |
+          cd contract
+          yarn install
+
+      - name: Install dependencies in deploy/
+        run: |
+          cd deploy
+          yarn install
+
+      - name: Deploy Staking contract
+        run: cd deploy && yarn deploy
+
+      - name: Verify Staking contract installation from vStorage
+        run: ./scripts/check-vstorage.mjs
+        env:
+          vStorageUrl: http://localhost:1317/agoric/vstorage/data/published.agoricNames.instance
+          valueToFind: StkC

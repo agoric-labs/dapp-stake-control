@@ -5,7 +5,6 @@ import fs from 'fs';
 const planFile = process.env.planFile;
 if (!planFile) throw new Error('PLAN_FILE environment variable is required.');
 
-const CI = process.env.CI === 'true';
 const createVault = process.env.createVault === 'true';
 const runInsideContainer = process.env.runInsideContainer == 'true';
 
@@ -37,11 +36,6 @@ const setPermitAndScript = async () => {
   script = await jqExtract('.script');
   permit = await jqExtract('.permit');
 
-  if (CI) {
-    script = `/usr/src/upgrade-test-scripts/${script}`;
-    permit = `/usr/src/upgrade-test-scripts/${permit}`;
-  }
-
   if (!script || !permit) {
     throw new Error(`Error: Failed to parse required fields from ${planFile}`);
   }
@@ -49,8 +43,8 @@ const setPermitAndScript = async () => {
 
 const setBundleFiles = async () => {
   console.log('Setting bundle files from plan...');
-  const sourceKey = CI ? '.bundles[].fileName' : '.bundles[].bundleID';
-  const suffix = CI ? '' : '.json';
+  const sourceKey = '.bundles[].bundleID';
+  const suffix = '.json';
 
   const result = await jqExtract(sourceKey);
   bundleFiles = result
@@ -60,11 +54,6 @@ const setBundleFiles = async () => {
 };
 
 const copyFilesToContainer = async () => {
-  if (CI) {
-    console.log('Skipping file copy: running in CI environment');
-    return;
-  }
-
   const containerID = 'agoric';
   const targetDir = '/usr/src/';
 
@@ -86,7 +75,7 @@ const copyFilesToContainer = async () => {
 
 const installBundles = async () => {
   for (const b of bundleFiles) {
-    let cmd = CI ? `cd /usr/src/upgrade-test-scripts && ` : `cd /usr/src && `;
+    let cmd = `cd /usr/src && `;
 
     cmd += `echo 'Installing ${b}' && ls -sh '${b}' && agd tx swingset install-bundle --compress '@${b}' --from ${walletName} -bblock ${SIGN_BROADCAST_OPTS}`;
     console.log(`Executing installation for bundle ${b}`);
@@ -116,7 +105,7 @@ const openVault = async () => {
 const acceptProposal = async () => {
   console.log(`Submitting proposal to evaluate ${script}`);
 
-  const baseDir = CI ? '/usr/src/upgrade-test-scripts' : '/usr/src';
+  const baseDir = '/usr/src';
   const submitCommand = `cd ${baseDir} && agd tx gov submit-proposal swingset-core-eval ${permit} ${script} --title='Install ${script}' --description='Evaluate ${script}' --deposit=10000000ubld --from ${walletName} ${SIGN_BROADCAST_OPTS} -o json`;
   await execCmd(submitCommand);
 
