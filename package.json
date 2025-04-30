@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "lint": "prettier . --check",
-    "lint:fix": "prettier . --write"
+    "lint:fix": "prettier . --write",
+    "wait-for-agd-block": "scripts/wait-for-block.sh 1234",
+    "start:chain": "docker run --name agoric -p 26657:26657 -p 1317:1317 -p 9090:9090 ghcr.io/agoric/agoric_3-proposals:latest"
   },
   "private": true,
   "useWorkspaces": true,

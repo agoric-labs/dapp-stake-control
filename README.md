@@ -18,12 +18,10 @@ yarn dev
 
 ## Deploy Contract on Local Chain
 
-- Start the local chain by running the following command.
-  Important: Ensure the container is named `agoric`.
+- Start the local chain:
 
   ```
-  docker run -d --name agoric -p 26657:26657 -p 1317:1317 -p 9090:9090 ghcr.io/agoric/agoric-3-proposals:latest
-
+  yarn start:chain
   ```
 
 - Install dependencies for deployment:
