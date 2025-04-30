@@ -1,29 +1,10 @@
 import { makeAgoricWalletConnection } from '@agoric/web-components';
+import { CurrentWalletRecord } from '@agoric/smart-wallet/src/smartWallet.js';
+
 // XXX cross-package import
 import type { PortfolioConfig } from '../../../contract/typeGuards.js';
 
 export type Wallet = Awaited<ReturnType<typeof makeAgoricWalletConnection>>;
-
-// XXX  * @import {CurrentWalletRecord} from '@agoric/smart-wallet/src/smartWallet.js';
-export interface CurrentOffer {
-  liveOffers: Array<unknown>;
-  offerToPublicSubscriberPaths: Array<unknown>;
-  offerToUsedInvitation: Array<
-    [
-      string,
-      {
-        brand: unknown;
-        value: Array<{
-          description: string;
-          handle: unknown;
-          instance: unknown;
-          installation: unknown;
-        }>;
-      },
-    ]
-  >;
-  purses: Array<unknown>;
-}
 
 export interface BalanceCheckParams {
   walletAddress: string;
@@ -38,7 +19,7 @@ export interface AppState {
   loading: boolean;
   error?: string;
   tab: number;
-  currentOffers: CurrentOffer | null;
+  currentOffers: CurrentWalletRecord | null;
   latestInvitation: string;
 }
 
