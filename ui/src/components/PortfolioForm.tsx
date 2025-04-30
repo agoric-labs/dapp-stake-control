@@ -5,6 +5,7 @@ import { TOAST_DURATION } from '../config';
 import { useAppStore } from '../state';
 import { showError } from '../Utils';
 import { OfferArgsPortfolio } from '../interfaces/interfaces';
+import { type OfferSpec } from '@agoric/smart-wallet/src/offers.js';
 
 const chainOptions = ['Osmosis', 'Cosmos Hub'];
 
@@ -47,6 +48,7 @@ export default function PortfolioForm() {
 
       const requiredBrand = brands[brand.brandKey];
 
+      // TODO: get custom terms from vstorage
       const give = {
         Fee: { brand: requiredBrand, value: 10n * 1000_000n },
         Retainer: { brand: requiredBrand, value: 50n * 1000_000n },
@@ -59,11 +61,11 @@ export default function PortfolioForm() {
       const chainArgs = offerArgs[selectedChain];
 
       if (settings.stakeFrequency) {
-        chainArgs.freqStake = settings.stakeFrequency;
+        chainArgs.freq = settings.stakeFrequency;
       }
 
       if (settings.restakeFrequency) {
-        chainArgs.freqRestake = settings.restakeFrequency;
+        chainArgs.freq = settings.restakeFrequency;
       }
 
       if (settings.restake) {
@@ -75,16 +77,21 @@ export default function PortfolioForm() {
       }
 
       console.log(offerArgs);
+      const offer: Omit<OfferSpec, 'id'> = {
+        invitationSpec: {
+          source: 'contract',
+          instance: contractInstance,
+          publicInvitationMaker: 'makeStakingPortfolio',
+        },
+        proposal: { give },
+        offerArgs,
+      };
 
       await new Promise<void>((resolve, reject) => {
         wallet.makeOffer(
-          {
-            source: 'contract',
-            instance: contractInstance,
-            publicInvitationMaker: 'makeStakingPortfolio',
-          },
-          { give },
-          offerArgs,
+          offer.invitationSpec,
+          offer.proposal,
+          offer.offerArgs,
           (update: { status: string; data?: unknown }) => {
             switch (update.status) {
               case 'error':
