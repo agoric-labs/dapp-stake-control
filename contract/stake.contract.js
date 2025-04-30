@@ -1,7 +1,6 @@
 // @ts-check
 import { makeTracer } from '@agoric/internal';
 import { prepareChainHubAdmin } from '@agoric/orchestration/src/exos/chain-hub-admin.js';
-import fetchedChainInfo from '@agoric/orchestration/src/fetched-chain-info.js';
 import { registerChainsAndAssets } from '@agoric/orchestration/src/utils/chain-hub-helper.js';
 import { withOrchestration } from '@agoric/orchestration/src/utils/start-helper.js';
 import { InvitationShape } from '@agoric/zoe/src/typeGuards.js';
@@ -67,12 +66,7 @@ export const contract = async (
   registerChainsAndAssets(
     chainHub,
     terms.brands,
-    // TODO: replace fetchedChainInfo
-    {
-      agoric: fetchedChainInfo.agoric,
-      osmosis: fetchedChainInfo.osmosis,
-      noble: fetchedChainInfo.noble,
-    },
+    privateArgs.chainInfo,
     privateArgs.assetInfo,
   );
 
