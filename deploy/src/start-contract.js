@@ -68,8 +68,7 @@ export const startStakeManagement = async (
   trace(startStakeManagement.name);
 
   const terms = {
-    fee: AmountMath.make(await BLD, 10n * 1_000_000n),
-    retainer: AmountMath.make(await BLD, 50n * 1_000_000n),
+    portfolioFee: AmountMath.make(await BLD, 10n * 1_000_000n),
   };
 
   const marshaller = await E(board).getReadonlyMarshaller();
