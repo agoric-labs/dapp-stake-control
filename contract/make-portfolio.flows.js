@@ -29,7 +29,7 @@ export const makeStakingPortfolio = async (
   seat,
   offerArgs,
 ) => {
-  void log('Inside makeStakingPortfolio');
+  console.log('Inside makeStakingPortfolio');
   mustMatch(offerArgs, PortfolioConfigShape);
   entries(offerArgs).length === 1 || Fail`only 1 remote currently supported`;
   const [[chainName, plan]] = entries(offerArgs);
@@ -46,8 +46,10 @@ export const makeStakingPortfolio = async (
   const remoteDenom = stakingTokens[0].denom;
   remoteDenom || Fail`${chainId} does not have stakingTokens in config`;
 
+  console.log('Creating Remote account...');
   const remoteAccount = await remoteChain.makeAccount();
-  void log('Remote account created successfully');
+  console.log('Remote account created successfully');
+
   const remoteChainAddress = await remoteAccount.getAddress();
   console.log('Remote Chain Address:', remoteChainAddress);
 

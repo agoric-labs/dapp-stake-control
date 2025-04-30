@@ -12,7 +12,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
 import Logo from './components/Logo';
 import { useAppStore } from './state';
-import { CurrentOffer } from './interfaces/interfaces';
+import { CurrentWalletRecord } from '@agoric/smart-wallet/src/smartWallet.js';
 import { ContentContainer } from './components/ContentContainer';
 import { TopBar } from './components/Topbar';
 
@@ -46,7 +46,7 @@ const setup = async (walletAddress: string | undefined) => {
     },
   );
 
-  watcher.watchLatest<CurrentOffer>(
+  watcher.watchLatest<CurrentWalletRecord>(
     [Kind.Data, `published.wallet.${walletAddress}.current`],
     (co) => {
       const currentOffer = co ? co : null;
