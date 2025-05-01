@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './PortfolioForm.css';
 import { toast } from 'react-toastify';
 import { TOAST_DURATION } from '../config';
@@ -7,7 +7,7 @@ import { showError } from '../Utils';
 import { OfferArgsPortfolio } from '../interfaces/interfaces';
 import { type OfferSpec } from '@agoric/smart-wallet/src/offers.js';
 
-const chainOptions = ['Osmosis', 'CosmosHub'];
+const chainOptions = ['Osmosis', 'Noble'];
 
 export default function PortfolioForm() {
   const [selectedChain, setSelectedChain] = useState('');
@@ -16,6 +16,28 @@ export default function PortfolioForm() {
   );
 
   const { wallet, contractInstance, brands } = useAppStore.getState();
+
+  // Initialize state from URL params on mount
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const chainParam = searchParams.get('chain');
+    const validChains = chainOptions.map((c) => c.toLowerCase());
+
+    if (chainParam && validChains.includes(chainParam)) {
+      const freq = searchParams.get('freq') || '';
+      const onReceipt = searchParams.has('onReceipt') ? ['stake'] : [];
+      const onRewards = searchParams.has('onRewards') ? ['restake'] : [];
+
+      setSelectedChain(chainParam);
+      setPortfolioConfig({
+        [chainParam]: {
+          freq,
+          onReceipt,
+          onRewards,
+        },
+      });
+    }
+  }, []);
 
   const updateChainConfig = (chainName, changes) => {
     setPortfolioConfig((prev) => ({
@@ -27,9 +49,42 @@ export default function PortfolioForm() {
     }));
   };
 
+  const updateUrlParams = (params: Record<string, any>) => {
+    const url = new URL(window.location.href);
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value) {
+        url.searchParams.set(key, value);
+      } else {
+        url.searchParams.delete(key);
+      }
+    });
+
+    history.replaceState(null, '', url.href);
+  };
+
+  const handleFrequency = (newFreq) => {
+    updateChainConfig(selectedChain, { freq: newFreq });
+    updateUrlParams({ freq: newFreq });
+  };
+
+  const handleToggle = (key, value) => {
+    const isChecked = config[key].length > 0;
+    const newValue = isChecked ? [] : [value];
+
+    updateChainConfig(selectedChain, {
+      [key]: newValue,
+    });
+
+    // Passing null removes the key from URL Params
+    updateUrlParams({ [key]: newValue.length > 0 ? newValue : null });
+  };
+
   const handleChainUpdate = (e) => {
     const chain = e.target.value;
     setSelectedChain(chain);
+
+    updateUrlParams({ chain, freq: null, onRewards: null, onReceipt: null });
     setPortfolioConfig({
       [chain]: { freq: '', onReceipt: [], onRewards: [] },
     });
@@ -140,22 +195,14 @@ export default function PortfolioForm() {
             <button
               type="button"
               className={config.freq === 'daily' ? 'active' : ''}
-              onClick={() =>
-                updateChainConfig(selectedChain, {
-                  freq: config.freq === 'daily' ? '' : 'daily',
-                })
-              }
+              onClick={() => handleFrequency('daily')}
             >
               Daily
             </button>
             <button
               type="button"
               className={config.freq === 'weekly' ? 'active' : ''}
-              onClick={() =>
-                updateChainConfig(selectedChain, {
-                  freq: config.freq === 'weekly' ? '' : 'weekly',
-                })
-              }
+              onClick={() => handleFrequency('weekly')}
             >
               Weekly
             </button>
@@ -166,11 +213,7 @@ export default function PortfolioForm() {
             <input
               type="checkbox"
               checked={!!config.onReceipt.length}
-              onChange={() =>
-                updateChainConfig(selectedChain, {
-                  onReceipt: config.onReceipt.length ? [] : ['stake'],
-                })
-              }
+              onClick={() => handleToggle('onReceipt', 'stake')}
             />
           </label>
 
@@ -179,11 +222,7 @@ export default function PortfolioForm() {
             <input
               type="checkbox"
               checked={!!config.onRewards.length}
-              onChange={() =>
-                updateChainConfig(selectedChain, {
-                  onRewards: config.onRewards.length ? [] : ['restake'],
-                })
-              }
+              onClick={() => handleToggle('onRewards', 'restake')}
             />
           </label>
         </div>
