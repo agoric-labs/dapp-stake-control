@@ -41,7 +41,6 @@ export const startStakeManagement = async (
       cosmosInterchainService,
       localchain,
       startUpgradable,
-      chainTimerService: chainTimerServiceP,
     },
     brand: {
       consume: { BLD: bldBrandP },
@@ -79,7 +78,6 @@ export const startStakeManagement = async (
       timerService: chainTimerService,
       chainInfo,
       assetInfo,
-      timerService,
     }),
   );
 
@@ -127,7 +125,6 @@ export const getManifest = ({ restoreRef }, { installationRef, options }) => {
           cosmosInterchainService: true,
           localchain: true,
           startUpgradable: true,
-          chainTimerService: true,
         },
         brand: { consume: { BLD: true } },
         installation: {
