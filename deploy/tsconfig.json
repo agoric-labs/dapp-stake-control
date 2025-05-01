@@ -1,0 +1,4 @@
+{
+  "extends": "../contract/tsconfig-base.json",
+  "include": ["build", "index.js", "scripts", "src", "test", "tools"]
+}
