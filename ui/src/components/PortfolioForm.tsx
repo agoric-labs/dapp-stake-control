@@ -161,8 +161,8 @@ export default function PortfolioForm() {
             </button>
           </div>
 
-          <div className="setting-row">
-            <label>Stake when tokens arrive:</label>
+          <label className="setting-row">
+            <p>Stake when tokens arrive:</p>
             <input
               type="checkbox"
               checked={!!config.onReceipt.length}
@@ -172,10 +172,10 @@ export default function PortfolioForm() {
                 })
               }
             />
-          </div>
+          </label>
 
-          <div className="setting-row">
-            <label>Restake when rewards accrue:</label>
+          <label className="setting-row">
+            <p>Restake when rewards accrue:</p>
             <input
               type="checkbox"
               checked={!!config.onRewards.length}
@@ -185,7 +185,7 @@ export default function PortfolioForm() {
                 })
               }
             />
-          </div>
+          </label>
         </div>
       )}
 
