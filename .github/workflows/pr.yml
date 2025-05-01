@@ -26,14 +26,8 @@ jobs:
       - name: Install root dependencies
         run: yarn install
 
-      - name: Install dependencies in contract/
-        run: cd contract && yarn install
-
       - name: Run contract tests
         run: cd contract && yarn test
-
-      - name: Install dependencies in deploy/
-        run: cd deploy && yarn install
 
       - name: Run deploy tests
         run: cd deploy && yarn test
