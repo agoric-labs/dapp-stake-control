@@ -35,14 +35,8 @@ jobs:
       - name: Wait for Agoric Local Chain to be ready
         run: yarn wait-for-agd-block
 
-      - name: Install dependencies in contract/
-        run: cd contract && yarn install
-
-      - name: Install dependencies in deploy/
-        run: cd deploy && yarn install
-
       - name: Deploy Staking contract
-        run: cd deploy && yarn deploy
+        run: yarn deploy:contract
 
       - name: Verify Staking contract installation from vStorage
         run: ./scripts/check-vstorage.mjs

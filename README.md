@@ -1,3 +1,11 @@
+## Install Dependencies
+
+Before running any commands, install all project dependencies:
+
+```
+yarn install
+```
+
 ## Directory Structure
 
 - **`contract/`**  
@@ -12,8 +20,7 @@
 ## Start the UI
 
 ```
-cd ui && yarn install
-yarn dev
+yarn start:ui
 ```
 
 ## Deploy Contract on Local Chain
@@ -24,21 +31,14 @@ yarn dev
   yarn start:chain
   ```
 
-- Install dependencies for deployment:
-
-  ```
-  (cd contract; yarn install)
-  (cd deploy; yarn install)
-  ```
-
 - Deploy the contract:
 
   ```
-  (cd deploy; yarn deploy)
+  yarn deploy:contract
   ```
 
 ## Run Tests
 
 ```
-cd deploy && yarn test
+yarn test
 ```
