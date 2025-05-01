@@ -10,6 +10,10 @@
   },
   "private": true,
   "useWorkspaces": true,
+  "workspaces": [
+    "contract",
+    "deploy"
+  ],
   "prettier": {
     "semi": true,
     "singleQuote": true,
