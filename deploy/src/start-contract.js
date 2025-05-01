@@ -1,23 +1,22 @@
-import {
-  deeplyFulfilledObject,
-  makeTracer,
-  NonNullish,
-} from '@agoric/internal';
-import { E } from '@endo/far';
 import { AmountMath } from '@agoric/ertp';
+import { deeplyFulfilledObject, makeTracer } from '@agoric/internal';
+import { E } from '@endo/far';
 
 /// <reference types="@agoric/vats/src/core/types-ambient"/>
 
 /**
+ * @import {Issuer} from '@agoric/ertp';
  * @import {Installation, Instance} from '@agoric/zoe/src/zoeService/utils.js';
  * @import {CosmosChainInfo, Denom, DenomDetail} from '@agoric/orchestration';
- * @import {start as StartFn} from '../../contract/stake.contract.js';
+ * @import {StorageNode} from '@agoric/internal/src/lib-chainStorage.js';
+ * @import {StartFn, StkCTerms} from '../../contract/stake.contract.js';
  */
 
 const trace = makeTracer('start StkC', true);
 
 /**
  * @param {BootstrapPowers & {
+ *   consume: { chainStorage: StorageNode },
  *   installation: {
  *     consume: {
  *       StkC: Installation<StartFn>;
@@ -25,13 +24,7 @@ const trace = makeTracer('start StkC', true);
  *   };
  *   instance: {
  *     produce: {
- *       StkC: Producer<Instance>;
- *     };
- *   };
- *   issuer: {
- *     consume: {
- *       BLD: Issuer<'nat'>;
- *       IST: Issuer<'nat'>;
+ *       StkC: Producer<Instance<StartFn>>;
  *     };
  *   };
  * }} powers
@@ -70,6 +63,7 @@ export const startStakeManagement = async (
 ) => {
   trace(startStakeManagement.name);
 
+  /** @type {StkCTerms} */
   const terms = {
     portfolioFee: AmountMath.make(await bldBrandP, 10n * 1_000_000n),
   };
@@ -84,7 +78,7 @@ export const startStakeManagement = async (
       localchain,
       marshaller,
       orchestrationService: cosmosInterchainService,
-      storageNode: E(NonNullish(await chainStorage)).makeChildNode('StkC'),
+      storageNode: E(chainStorage).makeChildNode('StkC'),
       timerService: chainTimerService,
       chainInfo,
       assetInfo,
