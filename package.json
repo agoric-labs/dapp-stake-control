@@ -6,7 +6,11 @@
     "lint": "prettier . --check",
     "lint:fix": "prettier . --write",
     "wait-for-agd-block": "timeout 300 scripts/wait-for-block.sh 1234",
-    "start:chain": "docker run -d --name agoric -p 26657:26657 -p 1317:1317 -p 9090:9090 ghcr.io/agoric/agoric-3-proposals:latest"
+    "deploy:contract": "cd deploy && yarn deploy",
+    "start:ui": "cd ui && yarn dev",
+    "start:chain": "docker run -d --name agoric -p 26657:26657 -p 1317:1317 -p 9090:9090 ghcr.io/agoric/agoric-3-proposals:latest",
+    "test": "yarn workspace staking-contract test && yarn workspace deploy-staking-contract test",
+    "postinstall": "patch-package"
   },
   "private": true,
   "useWorkspaces": true,
@@ -26,6 +30,7 @@
   "description": "",
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e",
   "devDependencies": {
+    "patch-package": "^8.0.0",
     "prettier": "^3.5.3",
     "typescript": "~5.8.2"
   },

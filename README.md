@@ -20,7 +20,7 @@ yarn install
 ## Start the UI
 
 ```
-cd ui && yarn dev
+yarn start:ui
 ```
 
 ## Deploy Contract on Local Chain
@@ -34,11 +34,11 @@ cd ui && yarn dev
 - Deploy the contract:
 
   ```
-  (cd deploy; yarn deploy)
+  yarn deploy:contract
   ```
 
 ## Run Tests
 
 ```
-cd deploy && yarn test
+yarn test
 ```

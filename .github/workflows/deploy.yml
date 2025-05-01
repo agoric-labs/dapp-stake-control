@@ -36,7 +36,7 @@ jobs:
         run: yarn wait-for-agd-block
 
       - name: Deploy Staking contract
-        run: cd deploy && yarn deploy
+        run: yarn deploy:contract
 
       - name: Verify Staking contract installation from vStorage
         run: ./scripts/check-vstorage.mjs

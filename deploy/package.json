@@ -1,5 +1,5 @@
 {
-  "name": "deploy-stake-management",
+  "name": "deploy-staking-contract",
   "private": true,
   "version": "1.0.0",
   "type": "module",
