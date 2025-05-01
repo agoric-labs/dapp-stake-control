@@ -1,8 +1,9 @@
 // @ts-check
-import { mustMatch } from '@agoric/internal';
+import { mustMatch, makeTracer } from '@agoric/internal';
 import { Fail } from '@endo/errors';
 import { PortfolioConfigShape } from './typeGuards.js';
 
+const trace = makeTracer('StkC');
 const supportedChains = ['osmosis', 'cosmoshub'];
 const { entries } = Object;
 
@@ -11,14 +12,13 @@ const { entries } = Object;
  * @import {MakeStakeManagementKit} from './staking-kit.js';
  * @import { ZCFSeat } from '@agoric/zoe/src/zoeService/zoe.js';
  * @import {PortfolioConfig} from './typeGuards.js'
- * @import {TimerService} from '@agoric/time';
  */
 
 /**
  * @satisfies {OrchestrationFlow}
  * @param {Orchestrator} orch
  * @param {{
- *   scheduleHandler: any
+ *   poll: any
  *   makeStakeManagementKit: MakeStakeManagementKit;
  *   log: (msg: string) => Promise<void>;
  * }} ctx
@@ -27,19 +27,19 @@ const { entries } = Object;
  */
 export const makeStakingPortfolio = async (
   orch,
-  { scheduleHandler, makeStakeManagementKit },
+  { poll, makeStakeManagementKit },
   seat,
   offerArgs,
 ) => {
-  console.log('Inside makeStakingPortfolio');
+  trace('Inside makeStakingPortfolio');
   mustMatch(offerArgs, PortfolioConfigShape);
   entries(offerArgs).length === 1 || Fail`only 1 remote currently supported`;
   const [[chainName, plan]] = entries(offerArgs);
-  console.log({ chainName, plan });
+  trace({ chainName, plan });
 
   supportedChains.includes(chainName) || Fail`Unsupported chain: ${chainName}`;
 
-  scheduleHandler();
+  // poll();
 
   const [agoric, remoteChain] = await Promise.all([
     orch.getChain('agoric'),
@@ -50,12 +50,12 @@ export const makeStakingPortfolio = async (
   const remoteDenom = stakingTokens[0].denom;
   remoteDenom || Fail`${chainId} does not have stakingTokens in config`;
 
-  console.log('Creating Remote account...');
+  trace('Creating Remote account...');
   const remoteAccount = await remoteChain.makeAccount();
-  console.log('Remote account created successfully');
+  trace('Remote account created successfully');
 
   const remoteChainAddress = await remoteAccount.getAddress();
-  console.log('Remote Chain Address:', remoteChainAddress);
+  trace('Remote Chain Address:', remoteChainAddress);
 
   const assets = await agoric.getVBankAssetInfo();
   const info = await remoteChain.getChainInfo();

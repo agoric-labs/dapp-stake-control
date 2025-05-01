@@ -7,7 +7,7 @@ import { withOrchestration } from '@agoric/orchestration/src/utils/start-helper.
 import { InvitationShape } from '@agoric/zoe/src/typeGuards.js';
 import { E, Far } from '@endo/far';
 import { M } from '@endo/patterns';
-import * as makeStakingPortfolioFlows from './make-portfolio.flows.js';
+import * as stakingFlows from './make-portfolio.flows.js';
 import { prepareStakeManagementKit } from './staking-kit.js';
 import {
   customTermsShape,
@@ -18,14 +18,15 @@ import {
 } from './typeGuards.js';
 
 /**
- * @import {Remote, Vow} from '@agoric/vow';
+ * @import {Remote} from '@agoric/vow';
  * @import {Zone} from '@agoric/zone';
  * @import {OrchestrationPowers, OrchestrationTools} from '@agoric/orchestration/src/utils/start-helper.js';
- * @import {ChainInfo, Denom, DenomDetail} from '@agoric/orchestration';
- * @import {Marshaller, StorageNode} from '@agoric/internal/src/lib-chainStorage.js';
+ * @import {ChainInfo, Denom, DenomArg, DenomDetail} from '@agoric/orchestration';
+ * @import {Marshaller} from '@agoric/internal/src/lib-chainStorage.js';
  * @import {PortfolioConfig} from './typeGuards.js';
  * @import { ZCF } from '@agoric/zoe/src/zoeService/zoe.js';
  * @import {Amount, Ratio} from '@agoric/ertp';
+ * @import {OrchestrationAccount} from '@agoric/orchestration';
  * @import {TimerServiceCommon, TimestampRecord} from '@agoric/time/src/types';
  * @import {Notifier} from '@agoric/notifier';
  */
@@ -63,7 +64,7 @@ export const contract = async (
   zone,
   { chainHub, orchestrateAll, vowTools, zoeTools },
 ) => {
-  console.log('Inside Contract');
+  trace('Inside Contract');
   const terms = zcf.getTerms();
 
   /**
@@ -73,22 +74,15 @@ export const contract = async (
   const timerService = privateArgs.timerService;
   const { chainInfo, assetInfo } = privateArgs;
 
-  console.log('Registering Chain and Assets....');
+  trace('Registering Chain and Assets....');
   registerChainsAndAssets(chainHub, terms.brands, chainInfo, assetInfo);
 
   const creatorFacet = prepareChainHubAdmin(zone, chainHub);
-
-  // UNTIL https://github.com/Agoric/agoric-sdk/issues/9066
-  const logNode = E(privateArgs.storageNode).makeChildNode('log');
-  /** @type {(msg: string) => Vow<void>} */
-  const log = (msg) => vowTools.watch(E(logNode).setValue(msg));
 
   const makeStakeManagementKit = prepareStakeManagementKit(
     zone.subZone('StkCTap'),
     {
       zcf,
-      vowTools,
-      log,
       zoeTools,
     },
   );
@@ -151,13 +145,13 @@ export const contract = async (
           for (const portfolio of portfolios.values()) {
             portfolio.poll();
           }
-          console.log('TODO: updateState', timestamp);
+          trace('TODO: updateState', timestamp);
         },
         finish(completion) {
-          console.log('TODO: finish', completion);
+          trace('TODO: finish', completion);
         },
         fail(reason) {
-          console.log('TODO: fail', reason);
+          trace('TODO: fail', reason);
         },
       },
     },
@@ -168,27 +162,38 @@ export const contract = async (
     values(PollingFrequency).map((freq) => [freq, makePollingKit()]),
   );
 
-  const repeaterP = E(timerService).makeRepeater(0n, 5n);
-  const schedule = E(repeaterP);
+  const FREQ_INTERVALS = {
+    daily: 86400n,
+    weekly: 604800n,
+  };
+  const STAKE_LIMIT = 20;
 
-  // Provide any necessary parameters here to customize behavior inside the wake function
-  const scheduleHandler = () => {
+  /**
+   * @param {"daily" | "weekly"} freq - How often to poll.
+   * @param {OrchestrationAccount<any>} remoteAccount - Account to poll.
+   * @param {DenomArg} denom
+   */
+  const poll = (freq, remoteAccount, denom) => {
+    assert(['daily', 'weekly'].includes(freq), `Invalid frequency: ${freq}`);
+
+    const repeaterP = E(timerService).makeRepeater(0n, FREQ_INTERVALS[freq]);
+    const schedule = E(repeaterP);
+
     const handler = Far('handler', {
       async wake(timestamp) {
-        console.log(
-          'TODO: implement the logic for polling and staking',
-          timestamp,
-        );
+        const denomAmount = await remoteAccount.getBalance(denom);
+        if (denomAmount.value >= STAKE_LIMIT) {
+          // TODO
+        }
       },
     });
 
     schedule.schedule(handler);
   };
 
-  const { makeStakingPortfolio } = orchestrateAll(makeStakingPortfolioFlows, {
+  const { makeStakingPortfolio } = orchestrateAll(stakingFlows, {
     makeStakeManagementKit,
-    log,
-    scheduleHandler,
+    poll,
   });
 
   const proposalShapes = makeProposalShapes(terms);

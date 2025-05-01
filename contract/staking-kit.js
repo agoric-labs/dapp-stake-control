@@ -1,20 +1,15 @@
 // @ts-check
 import { makeTracer } from '@agoric/internal';
 import { CosmosChainAddressShape } from '@agoric/orchestration';
-import { VowShape } from '@agoric/vow';
-import { atob } from '@endo/base64';
 import { Fail } from '@endo/errors';
 import { M, mustMatch } from '@endo/patterns';
 import { RemoteConfigShape } from './typeGuards.js';
 
-const trace = makeTracer('StkCTap');
+const trace = makeTracer('StkC');
 
 /**
- * @import {VTransferIBCEvent} from '@agoric/vats';
- * @import {Vow, VowTools} from '@agoric/vow';
  * @import {Zone} from '@agoric/zone';
  * @import {CosmosChainAddress, OrchestrationAccount} from '@agoric/orchestration';
- * @import {FungibleTokenPacketData} from '@agoric/cosmic-proto/ibc/applications/transfer/v2/packet.js';
  * @import {ZoeTools} from '@agoric/orchestration/src/utils/zoe-tools.js';
  * @import { ZCF, ZCFSeat } from '@agoric/zoe/src/zoeService/zoe.js';
  * @import {RemoteConfig} from './typeGuards.js';
@@ -51,25 +46,13 @@ harden(StakingKitStateShape);
  * @param {Zone} zone
  * @param {{
  *   zcf: ZCF;
- *   vowTools: VowTools;
- *   log: (msg: string) => Vow<void>;
  *   zoeTools: ZoeTools;
  * }} powers
  */
-export const prepareStakeManagementKit = (zone, { zcf, vowTools, log }) => {
+export const prepareStakeManagementKit = (zone, { zcf }) => {
   return zone.exoClassKit(
     'StakeManagementTapKit',
     {
-      tap: M.interface('StakeManagementTap', {
-        receiveUpcall: M.call(M.record()).returns(
-          M.or(VowShape, M.undefined()),
-        ),
-      }),
-      transferWatcher: M.interface('TransferWatcher', {
-        onFulfilled: M.call(M.undefined())
-          .optional(M.bigint())
-          .returns(VowShape),
-      }),
       holder: StakeManagementI,
       invitationMakers: InvitationMakerI,
     },
@@ -84,31 +67,6 @@ export const prepareStakeManagementKit = (zone, { zcf, vowTools, log }) => {
       });
     },
     {
-      tap: {
-        /**
-         * @param {VTransferIBCEvent} event
-         */
-        receiveUpcall(event) {
-          trace('receiveUpcall', event);
-
-          const tx = /** @type {FungibleTokenPacketData} */ (
-            JSON.parse(atob(event.packet.data))
-          );
-          trace('receiveUpcall packet data', tx);
-          trace('receiveUpcall completed');
-        },
-      },
-      transferWatcher: {
-        /**
-         * @param {void} _result
-         * @param {bigint} value the qty of uatom to delegate
-         */
-        onFulfilled(_result, value) {
-          trace('onFulfilled _result:', JSON.stringify(_result));
-          trace('onFulfilled value:', JSON.stringify(value));
-          trace('onFulfilled state:', JSON.stringify(this.state));
-        },
-      },
       holder: {
         /**
          * @param {ZCFSeat} seat
@@ -118,7 +76,7 @@ export const prepareStakeManagementKit = (zone, { zcf, vowTools, log }) => {
          * }} offerArgs
          */
         async stakeOnRemoteChain(seat, offerArgs) {
-          void log('Inside sendGmp');
+          trace('Inside sendGmp');
           const { validatorAddress, stakeAmount } = offerArgs;
 
           trace('Offer Args:', JSON.stringify(offerArgs));
@@ -142,11 +100,7 @@ export const prepareStakeManagementKit = (zone, { zcf, vowTools, log }) => {
             const { holder } = this.facets;
             switch (method) {
               case 'stakeOsmo': {
-                const vow = holder.stakeOnRemoteChain(seat, args[0]);
-                return vowTools.when(vow, (res) => {
-                  seat.exit();
-                  return res;
-                });
+                return holder.stakeOnRemoteChain(seat, args[0]);
               }
               default:
                 return 'Invalid method';
