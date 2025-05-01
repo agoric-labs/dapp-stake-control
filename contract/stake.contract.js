@@ -120,3 +120,4 @@ harden(contract);
 
 export const start = withOrchestration(contract);
 harden(start);
+/** @typedef {typeof start} StartFn */
