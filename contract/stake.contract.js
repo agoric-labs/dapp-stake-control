@@ -1,5 +1,6 @@
 // @ts-check
 import { makeTracer } from '@agoric/internal';
+import { observeIteration } from '@agoric/notifier';
 import { prepareChainHubAdmin } from '@agoric/orchestration/src/exos/chain-hub-admin.js';
 import { registerChainsAndAssets } from '@agoric/orchestration/src/utils/chain-hub-helper.js';
 import { withOrchestration } from '@agoric/orchestration/src/utils/start-helper.js';
@@ -11,6 +12,7 @@ import { prepareStakeManagementKit } from './staking-kit.js';
 import {
   customTermsShape,
   makeProposalShapes,
+  PollingFrequency,
   PortfolioConfigShape,
   privateArgsShape,
 } from './typeGuards.js';
@@ -24,7 +26,8 @@ import {
  * @import {PortfolioConfig} from './typeGuards.js';
  * @import { ZCF } from '@agoric/zoe/src/zoeService/zoe.js';
  * @import {Amount, Ratio} from '@agoric/ertp';
- * @import {TimerService} from '@agoric/time';
+ * @import {TimerServiceCommon, TimestampRecord} from '@agoric/time/src/types';
+ * @import {Notifier} from '@agoric/notifier';
  */
 
 const trace = makeTracer('StkC');
@@ -50,8 +53,6 @@ harden(meta);
  *   marshaller: Marshaller;
  *   chainInfo: Record<string, ChainInfo>;
  *   assetInfo?: [Denom, DenomDetail & { brandKey?: string }][];
- *   storageNode: Remote<StorageNode>;
- *   timerService: TimerService;
  * }} privateArgs
  * @param {Zone} zone
  * @param {OrchestrationTools} tools
@@ -65,15 +66,15 @@ export const contract = async (
   console.log('Inside Contract');
   const terms = zcf.getTerms();
 
-  const { chainInfo, assetInfo, timerService } = privateArgs;
+  /**
+   * @type {Remote<TimerServiceCommon>}
+   * XXX something is odd about the TimerService type; it's any???
+   */
+  const timerService = privateArgs.timerService;
+  const { chainInfo, assetInfo } = privateArgs;
 
   console.log('Registering Chain and Assets....');
-  registerChainsAndAssets(
-    chainHub,
-    terms.brands,
-    privateArgs.chainInfo,
-    privateArgs.assetInfo,
-  );
+  registerChainsAndAssets(chainHub, terms.brands, chainInfo, assetInfo);
 
   const creatorFacet = prepareChainHubAdmin(zone, chainHub);
 
@@ -90,6 +91,81 @@ export const contract = async (
       log,
       zoeTools,
     },
+  );
+
+  const ifaceTODO = undefined;
+  const zoneP = zone.subZone('polling');
+  const makeCancelToken = zoneP.exoClass('Cancel', undefined, () => {}, {});
+  const makePollingKit = zoneP.exoClassKit(
+    'PollingKit',
+    ifaceTODO,
+    () => {
+      return {
+        nextKey: 0n,
+        portfolios: zoneP.detached().mapStore('portfolio'),
+        notifier: /** @type {Notifier<TimestampRecord> | undefined} */ (
+          undefined
+        ),
+        cancelToken: /** @type {{} | undefined} */ (undefined),
+      };
+    },
+    {
+      admin: {
+        addPortfolio(it) {
+          const { nextKey, portfolios } = this.state;
+          portfolios.init(nextKey, it);
+          this.state.nextKey = nextKey + 1n;
+          if (it.freq) {
+            this.facets.admin.start();
+          }
+        },
+        async start() {
+          if (this.state.cancelToken) {
+            console.warn('already started');
+            return;
+          }
+          const cancelToken = makeCancelToken();
+          const notifier = await E(timerService).makeNotifier(
+            0n,
+            5n,
+            cancelToken,
+          );
+          Object.assign(this.state, { cancelToken, notifier });
+          void observeIteration(notifier, this.facets.observer);
+        },
+        async stop() {
+          const { cancelToken } = this.state;
+          if (!cancelToken) return;
+          await E(timerService).cancel(cancelToken);
+          Object.assign(this.state, {
+            cancelToken: undefined,
+            notifier: undefined,
+          });
+        },
+      },
+      observer: {
+        /** @param {TimestampRecord} timestamp */
+        updateState(timestamp) {
+          const { portfolios } = this.state;
+          // TODO what to do if there are LOTS?
+          for (const portfolio of portfolios.values()) {
+            portfolio.poll();
+          }
+          console.log('TODO: updateState', timestamp);
+        },
+        finish(completion) {
+          console.log('TODO: finish', completion);
+        },
+        fail(reason) {
+          console.log('TODO: fail', reason);
+        },
+      },
+    },
+  );
+  const { values } = Object;
+  const byFreq = zoneP.mapStore('byFreq');
+  byFreq.addAll(
+    values(PollingFrequency).map((freq) => [freq, makePollingKit()]),
   );
 
   const { makeStakingPortfolio } = orchestrateAll(makeStakingPortfolioFlows, {
