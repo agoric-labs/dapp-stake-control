@@ -12,6 +12,7 @@
   "useWorkspaces": true,
   "workspaces": [
     "contract",
+    "ui",
     "deploy"
   ],
   "prettier": {
