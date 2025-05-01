@@ -42,7 +42,7 @@
     "@agoric/cosmic-swingset": "dev",
     "@agoric/ertp": "dev",
     "@agoric/internal": "dev",
-    "@agoric/orchestration": "dev",
+    "@agoric/orchestration": "0.1.1-dev-9f21b9d.0",
     "@agoric/swingset-vat": "dev",
     "@agoric/telemetry": "dev",
     "@agoric/vats": "dev",
