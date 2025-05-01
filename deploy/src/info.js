@@ -1,3 +1,8 @@
+/**
+ * @import {Brand} from '@agoric/ertp';
+ * @import {Denom} from '@agoric/orchestration';
+ */
+
 const osmosisData = {
   channelId: 'channel-10170',
   clientId: '07-tendermint-4441',
