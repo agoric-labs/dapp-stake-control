@@ -2,7 +2,6 @@
 import { mustMatch } from '@agoric/internal';
 import { Fail } from '@endo/errors';
 import { PortfolioConfigShape } from './typeGuards.js';
-import { E, Far } from '@endo/far';
 
 const supportedChains = ['osmosis', 'cosmoshub'];
 const { entries } = Object;
@@ -19,16 +18,16 @@ const { entries } = Object;
  * @satisfies {OrchestrationFlow}
  * @param {Orchestrator} orch
  * @param {{
+ *   scheduleHandler: any
  *   makeStakeManagementKit: MakeStakeManagementKit;
  *   log: (msg: string) => Promise<void>;
- *   timerService: TimerService;
  * }} ctx
  * @param {ZCFSeat} seat
  * @param {PortfolioConfig} offerArgs
  */
 export const makeStakingPortfolio = async (
   orch,
-  { log, makeStakeManagementKit, timerService },
+  { scheduleHandler, makeStakeManagementKit },
   seat,
   offerArgs,
 ) => {
@@ -40,16 +39,7 @@ export const makeStakingPortfolio = async (
 
   supportedChains.includes(chainName) || Fail`Unsupported chain: ${chainName}`;
 
-  const handler = Far('handler', {
-    async wake(timestamp) {
-      console.log(
-        'TODO: implement the logic for polling and staking',
-        timestamp,
-      );
-    },
-  });
-  const repeaterP = E(timerService).makeRepeater(0n, 5n);
-  void E(repeaterP).schedule(handler);
+  scheduleHandler();
 
   const [agoric, remoteChain] = await Promise.all([
     orch.getChain('agoric'),

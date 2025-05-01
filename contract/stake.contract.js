@@ -5,7 +5,7 @@ import { prepareChainHubAdmin } from '@agoric/orchestration/src/exos/chain-hub-a
 import { registerChainsAndAssets } from '@agoric/orchestration/src/utils/chain-hub-helper.js';
 import { withOrchestration } from '@agoric/orchestration/src/utils/start-helper.js';
 import { InvitationShape } from '@agoric/zoe/src/typeGuards.js';
-import { E } from '@endo/far';
+import { E, Far } from '@endo/far';
 import { M } from '@endo/patterns';
 import * as makeStakingPortfolioFlows from './make-portfolio.flows.js';
 import { prepareStakeManagementKit } from './staking-kit.js';
@@ -168,10 +168,27 @@ export const contract = async (
     values(PollingFrequency).map((freq) => [freq, makePollingKit()]),
   );
 
+  const repeaterP = E(timerService).makeRepeater(0n, 5n);
+  const schedule = E(repeaterP);
+
+  // Provide any necessary parameters here to customize behavior inside the wake function
+  const scheduleHandler = () => {
+    const handler = Far('handler', {
+      async wake(timestamp) {
+        console.log(
+          'TODO: implement the logic for polling and staking',
+          timestamp,
+        );
+      },
+    });
+
+    schedule.schedule(handler);
+  };
+
   const { makeStakingPortfolio } = orchestrateAll(makeStakingPortfolioFlows, {
     makeStakeManagementKit,
     log,
-    timerService,
+    scheduleHandler,
   });
 
   const proposalShapes = makeProposalShapes(terms);

@@ -11,7 +11,6 @@
   "devDependencies": {
     "@agoric/async-flow": "dev",
     "@agoric/cosmic-proto": "dev",
-    "@agoric/ertp": "dev",
     "@agoric/fast-usdc": "dev",
     "@agoric/smart-wallet": "dev",
     "@agoric/vats": "dev",
@@ -25,6 +24,7 @@
   "dependencies": {
     "@agoric/internal": "dev",
     "@agoric/orchestration": "dev",
+    "@agoric/ertp": "dev",
     "@agoric/vow": "dev",
     "@endo/base64": "^1.0.9",
     "@endo/errors": "^1.2.10",
