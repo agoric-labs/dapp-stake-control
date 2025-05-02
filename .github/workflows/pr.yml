@@ -31,3 +31,6 @@ jobs:
 
       - name: Run lint check
         run: yarn lint
+
+      - name: Build UI
+        run: cd ui && yarn build

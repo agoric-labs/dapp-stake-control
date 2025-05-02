@@ -3,7 +3,7 @@ import { CurrentWalletRecord } from '@agoric/smart-wallet/src/smartWallet.js';
 
 // XXX cross-package import
 // @ts-ignore
-import type { PortfolioConfig } from 'contract/typeGuards.js';
+import type { PortfolioConfig } from '../../../contract/typeGuards.js';
 
 export type Wallet = Awaited<ReturnType<typeof makeAgoricWalletConnection>>;
 
