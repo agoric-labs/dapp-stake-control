@@ -1,17 +1,16 @@
+import type { Amount } from '@agoric/ertp';
+
 export type PortfolioEvent = {
-  timestamp: string;
-  retainerBalance: bigint;
-  // indicates that the portfolio is liquidating.
-  // any deposits, albeit claimed rewards, will be
-  // returned to the holder when discovered.
-  liquidating: boolean;
+  retainerBalance: Amount<'nat'>;
+  // indicates that the portfolio is unbonding
+  // and when the result will be available for withdrawal.
+  unbondingTime?: bigint; // seconds
   // if the portfolio is not liquidating, any
-  // deposits, albeit claimed rewards, will be
-  // staked.
+  // deposits will be staked.
   staking: boolean;
   // if the portfolio discovers unclaimed rewards,
-  // it will claim them.
-  claiming: boolean;
+  // it will claim and restake them.
+  restaking: boolean;
 } & (
   | {
       type: 'opened';
