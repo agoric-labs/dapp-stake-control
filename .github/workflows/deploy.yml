@@ -39,7 +39,7 @@ jobs:
         run: yarn deploy:contract
 
       - name: test
-        run: sleep 120 && docker logs agoric -f
+        run: sleep 120 && docker logs agoric
 
       - name: Verify Staking contract installation from vStorage
         run: ./scripts/check-vstorage.mjs
