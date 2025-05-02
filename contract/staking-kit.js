@@ -1,16 +1,16 @@
 // @ts-check
 import { makeTracer } from '@agoric/internal';
-import { CosmosChainAddressShape } from '@agoric/orchestration';
+import { DenomShape } from '@agoric/orchestration';
 import { M, mustMatch } from '@endo/patterns';
 import { RemoteConfigShape } from './typeGuards.js';
 
 const trace = makeTracer('StkCTap');
 
 /**
- * @import {Vow, VowTools} from '@agoric/vow';
+ * @import {TypedPattern} from '@agoric/internal';
+ * @import {VowTools} from '@agoric/vow';
  * @import {Zone} from '@agoric/zone';
- * @import {CosmosChainAddress, OrchestrationAccount} from '@agoric/orchestration';
- * @import {ZoeTools} from '@agoric/orchestration/src/utils/zoe-tools.js';
+ * @import {Denom, OrchestrationAccount} from '@agoric/orchestration';
  * @import { ZCF } from '@agoric/zoe/src/zoeService/zoe.js';
  * @import {RemoteConfig} from './typeGuards.js';
  */
@@ -18,21 +18,18 @@ const trace = makeTracer('StkCTap');
 /**
  * @typedef {{
  *   remoteAccount: OrchestrationAccount<any>;
- *   remoteChainAddress: CosmosChainAddress;
- *   assets: any;
- *   remoteChainInfo: any;
  *   stakePlan: RemoteConfig;
+ *   remoteDenom: Denom;
  * }} StakingTapState
  */
 
 const InvitationMakerI = M.interface('invitationMaker', {});
 
+/** @type {TypedPattern<StakingTapState>} */
 const StakingKitStateShape = {
-  remoteChainAddress: CosmosChainAddressShape,
   remoteAccount: M.remotable('OrchestrationAccount'),
-  assets: M.any(),
-  remoteChainInfo: M.any(),
   stakePlan: RemoteConfigShape,
+  remoteDenom: DenomShape,
 };
 harden(StakingKitStateShape);
 
@@ -41,11 +38,9 @@ harden(StakingKitStateShape);
  * @param {{
  *   zcf: ZCF;
  *   vowTools: VowTools;
- *   log: (msg: string) => Vow<void>;
- *   zoeTools: ZoeTools;
  * }} powers
  */
-export const prepareStakeManagementKit = (zone, { zcf, vowTools, log }) => {
+export const prepareStakeManagementKit = (zone, { zcf, vowTools }) => {
   return zone.exoClassKit(
     'StakeManagementTapKit',
     {
@@ -77,4 +72,4 @@ export const prepareStakeManagementKit = (zone, { zcf, vowTools, log }) => {
 };
 
 /** @typedef {ReturnType<typeof prepareStakeManagementKit>} MakeStakeManagementKit */
-/** @typedef {ReturnType<MakeStakeManagementKit>} StakeManagementKitKit */
+/** @typedef {ReturnType<MakeStakeManagementKit>} StakeManagementKit */

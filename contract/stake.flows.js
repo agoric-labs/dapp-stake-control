@@ -34,10 +34,7 @@ export const makeStakingPortfolio = async (
   const [[chainName, plan]] = entries(offerArgs);
   trace({ chainName, plan });
 
-  const [agoric, remoteChain] = await Promise.all([
-    orch.getChain('agoric'),
-    orch.getChain(chainName),
-  ]);
+  const remoteChain = await orch.getChain(chainName);
 
   const { stakingTokens } = await remoteChain.getChainInfo();
   const remoteDenom = stakingTokens[0].denom;
@@ -47,18 +44,10 @@ export const makeStakingPortfolio = async (
   const remoteAccount = await remoteChain.makeAccount();
   trace('Remote account created successfully');
 
-  const remoteChainAddress = await remoteAccount.getAddress();
-  trace('Remote Chain Address:', remoteChainAddress);
-
-  const assets = await agoric.getVBankAssetInfo();
-  const info = await remoteChain.getChainInfo();
-
   const stakeManagementKit = makeStakeManagementKit({
     remoteAccount,
-    remoteChainAddress,
-    assets,
-    remoteChainInfo: info,
     stakePlan: plan,
+    remoteDenom,
   });
 
   seat.exit();
