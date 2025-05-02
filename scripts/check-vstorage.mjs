@@ -35,6 +35,7 @@ while (Date.now() - startTime < maxWaitMs) {
     const fetchFromVStorage = makeFetchFromVStorage(fetch);
     const data = await fetchFromVStorage(vStorageUrl);
 
+    console.log('DATA...', JSON.stringify(data));
     for (const val of data) {
       if (val[0] === valueToFind) {
         found = true;
