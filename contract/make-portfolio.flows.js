@@ -3,7 +3,6 @@ import { mustMatch } from '@agoric/internal';
 import { Fail } from '@endo/errors';
 import { PortfolioConfigShape } from './typeGuards.js';
 
-const supportedChains = ['osmosis', 'cosmoshub'];
 const { entries, values } = Object;
 
 /**
@@ -34,8 +33,6 @@ export const makeStakingPortfolio = async (
   entries(offerArgs).length === 1 || Fail`only 1 remote currently supported`;
   const [[chainName, plan]] = entries(offerArgs);
   console.log({ chainName, plan });
-
-  supportedChains.includes(chainName) || Fail`Unsupported chain: ${chainName}`;
 
   const [agoric, remoteChain] = await Promise.all([
     orch.getChain('agoric'),
