@@ -11,26 +11,19 @@
   margin-top: 8px;
 }
 
-.topbar .view-source {
-  position: absolute;
-  left: 2rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.topbar .logo-container {
-  position: absolute;
-  right: 2rem;
-  top: 1px;
-}
-
 .title {
   text-align: center;
   color: #f7f7f7;
   font-weight: 700;
   font-size: 36px;
   line-height: 80px;
+  margin: 0;
+  padding: 0;
+}
+
+.title-container {
+  display: flex;
+  gap: 10px;
 }
 
 .github-logo {
@@ -38,7 +31,6 @@
 }
 
 .agoric-logo {
-  height: 8em;
   will-change: filter;
   transition: filter 300ms;
 }
@@ -78,6 +70,12 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.view-source {
+  position: absolute;
+  left: 2rem;
+  top: 1.2rem;
 }
 
 .github-logo {

@@ -1,5 +1,6 @@
 import Logo from './Logo';
 import './Topbar.css';
+import NetworkSelector from './NetworkSelector.tsx';
 
 export const TopBar = () => {
   return (
@@ -17,8 +18,11 @@ export const TopBar = () => {
           Fork me on GitHub
         </a>
       </div>
-      <h1 className="title">Stake Control</h1>
-      <Logo />
+      <div className="title-container">
+        <Logo height="80px" width="90px" />
+        <h1 className="title">Stake Control</h1>
+      </div>
+      <NetworkSelector />
     </div>
   );
 };
