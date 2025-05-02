@@ -1,6 +1,5 @@
 // @ts-check
 import { makeTracer } from '@agoric/internal';
-import { observeIteration } from '@agoric/notifier';
 import { prepareChainHubAdmin } from '@agoric/orchestration/src/exos/chain-hub-admin.js';
 import { registerChainsAndAssets } from '@agoric/orchestration/src/utils/chain-hub-helper.js';
 import { withOrchestration } from '@agoric/orchestration/src/utils/start-helper.js';
@@ -8,6 +7,7 @@ import { InvitationShape } from '@agoric/zoe/src/typeGuards.js';
 import { E, Far } from '@endo/far';
 import { M } from '@endo/patterns';
 import * as stakingFlows from './make-portfolio.flows.js';
+import { preparePollingKit } from './polling-kit.js';
 import { prepareStakeManagementKit } from './staking-kit.js';
 import {
   customTermsShape,
@@ -27,11 +27,11 @@ import {
  * @import { ZCF } from '@agoric/zoe/src/zoeService/zoe.js';
  * @import {Amount, Ratio} from '@agoric/ertp';
  * @import {OrchestrationAccount} from '@agoric/orchestration';
- * @import {TimerServiceCommon, TimestampRecord} from '@agoric/time/src/types';
- * @import {Notifier} from '@agoric/notifier';
+ * @import {TimerServiceCommon} from '@agoric/time/src/types';
  */
 
 const trace = makeTracer('StkC');
+const { values } = Object;
 
 export const meta = {
   customTermsShape,
@@ -87,76 +87,8 @@ export const contract = async (
     },
   );
 
-  const ifaceTODO = undefined;
   const zoneP = zone.subZone('polling');
-  const makeCancelToken = zoneP.exoClass('Cancel', undefined, () => {}, {});
-  const makePollingKit = zoneP.exoClassKit(
-    'PollingKit',
-    ifaceTODO,
-    () => {
-      return {
-        nextKey: 0n,
-        portfolios: zoneP.detached().mapStore('portfolio'),
-        notifier: /** @type {Notifier<TimestampRecord> | undefined} */ (
-          undefined
-        ),
-        cancelToken: /** @type {{} | undefined} */ (undefined),
-      };
-    },
-    {
-      admin: {
-        addPortfolio(it) {
-          const { nextKey, portfolios } = this.state;
-          portfolios.init(nextKey, it);
-          this.state.nextKey = nextKey + 1n;
-          if (it.freq) {
-            this.facets.admin.start();
-          }
-        },
-        async start() {
-          if (this.state.cancelToken) {
-            console.warn('already started');
-            return;
-          }
-          const cancelToken = makeCancelToken();
-          const notifier = await E(timerService).makeNotifier(
-            0n,
-            5n,
-            cancelToken,
-          );
-          Object.assign(this.state, { cancelToken, notifier });
-          void observeIteration(notifier, this.facets.observer);
-        },
-        async stop() {
-          const { cancelToken } = this.state;
-          if (!cancelToken) return;
-          await E(timerService).cancel(cancelToken);
-          Object.assign(this.state, {
-            cancelToken: undefined,
-            notifier: undefined,
-          });
-        },
-      },
-      observer: {
-        /** @param {TimestampRecord} timestamp */
-        updateState(timestamp) {
-          const { portfolios } = this.state;
-          // TODO what to do if there are LOTS?
-          for (const portfolio of portfolios.values()) {
-            portfolio.poll();
-          }
-          trace('TODO: updateState', timestamp);
-        },
-        finish(completion) {
-          trace('TODO: finish', completion);
-        },
-        fail(reason) {
-          trace('TODO: fail', reason);
-        },
-      },
-    },
-  );
-  const { values } = Object;
+  const makePollingKit = preparePollingKit(zoneP, timerService);
   const byFreq = zoneP.mapStore('byFreq');
   byFreq.addAll(
     values(PollingFrequency).map((freq) => [freq, makePollingKit()]),
