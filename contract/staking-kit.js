@@ -58,11 +58,6 @@ export const prepareStakeManagementKit = (zone, { zcf, vowTools, log }) => {
   return zone.exoClassKit(
     'StakeManagementTapKit',
     {
-      transferWatcher: M.interface('TransferWatcher', {
-        onFulfilled: M.call(M.undefined())
-          .optional(M.bigint())
-          .returns(VowShape),
-      }),
       holder: StakeManagementI,
       invitationMakers: InvitationMakerI,
     },
@@ -77,17 +72,6 @@ export const prepareStakeManagementKit = (zone, { zcf, vowTools, log }) => {
       });
     },
     {
-      transferWatcher: {
-        /**
-         * @param {void} _result
-         * @param {bigint} value the qty of uatom to delegate
-         */
-        onFulfilled(_result, value) {
-          trace('onFulfilled _result:', JSON.stringify(_result));
-          trace('onFulfilled value:', JSON.stringify(value));
-          trace('onFulfilled state:', JSON.stringify(this.state));
-        },
-      },
       holder: {
         /**
          * @param {ZCFSeat} seat
