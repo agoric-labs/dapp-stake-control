@@ -1,18 +1,44 @@
-import type { PaymentPKeywordRecord, ZoeService } from '@agoric/zoe';
+import type {
+  Invitation,
+  PaymentPKeywordRecord,
+  ZoeService,
+} from '@agoric/zoe';
 import type { PortfolioConfig, ProposalShapes } from '../typeGuards.js';
 import type { withAmountUtils } from '@agoric/zoe/tools/test-utils.js';
 import type { OfferSpec } from '@agoric/smart-wallet/src/offers.js';
 import type { ExecutionContext } from 'ava';
 import type { StartFn } from '../stake.contract.js';
-import type { Instance } from '@agoric/zoe/src/zoeService/utils.js';
+import type {
+  ContractStartFunction,
+  Instance,
+  StartedInstanceKit,
+} from '@agoric/zoe/src/zoeService/utils.js';
 import { Fail } from '@endo/errors';
 import { executeOffer } from './supports.js';
 import type { Amount, Payment } from '@agoric/ertp';
+import type { makeStakingPortfolio } from '../stake.flows.js';
+
+export type InvitationMakerSpec<
+  SF extends ContractStartFunction,
+  M extends keyof StartedInstanceKit<SF>['publicFacet'],
+> = OfferSpec & {
+  invitationSpec: {
+    source: 'contract';
+    instance: Instance<SF>;
+    publicInvitationMaker: M;
+  };
+};
 
 export interface WalletTool {
-  executeOffer(
-    spec: OfferSpec,
-  ): Promise<{ result: unknown; payouts: PaymentPKeywordRecord }>;
+  /**
+   * @param spec limited to source contract
+   */
+  executeOffer<
+    SF extends ContractStartFunction,
+    M extends keyof StartedInstanceKit<SF>['publicFacet'],
+  >(
+    spec: InvitationMakerSpec<SF, M>,
+  );
   deposit(p: Payment<'nat'>): Amount<'nat'>;
 }
 
@@ -27,14 +53,15 @@ export const makeWallet = (
   /** @param {Brand} b */
   const providePurse = (b) =>
     b === asset.brand ? purse : Fail`no purse for ${b}`;
-  return harden({
-    executeOffer(spec) {
+  const wallet: WalletTool = harden({
+    async executeOffer(spec) {
       return executeOffer(zoe, when, spec, providePurse);
     },
     deposit(p) {
       return purse.deposit(p);
     },
   });
+  return wallet;
 };
 
 export const makeCustomer = (
@@ -44,6 +71,10 @@ export const makeCustomer = (
   BLD: Pick<ReturnType<typeof withAmountUtils>, 'brand' | 'issuer' | 'units'>,
 ) => {
   let nonce = 0;
+
+  const publicInvitationMaker = 'makeStakingPortfolio' as const;
+  type Maker = typeof publicInvitationMaker;
+
   return harden({
     async makePortfolio(t: ExecutionContext) {
       const config: PortfolioConfig = {
@@ -62,8 +93,7 @@ export const makeCustomer = (
         },
       });
 
-      const publicInvitationMaker = 'makeStakingPortfolio';
-      const spec: OfferSpec = {
+      const spec: InvitationMakerSpec<StartFn, Maker> = {
         id: `makeSP-${(nonce += 1)}`,
         invitationSpec: { source: 'contract', instance, publicInvitationMaker },
         offerArgs: config,
@@ -71,7 +101,10 @@ export const makeCustomer = (
       };
       t.log(spec);
 
-      const offered = await wallet.executeOffer(spec);
+      const offered: {
+        result: Awaited<ReturnType<typeof makeStakingPortfolio>>;
+        payouts: PaymentPKeywordRecord;
+      } = await wallet.executeOffer(spec);
       return harden({ spec, ...offered });
     },
   });
