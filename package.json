@@ -5,7 +5,7 @@
   "scripts": {
     "lint": "prettier . --check",
     "lint:fix": "prettier . --write",
-    "wait-for-agd-block": "timeout 300 scripts/wait-for-block.sh 1234",
+    "wait-for-agd-block": "timeout 300 scripts/wait-for-block.sh 6000",
     "deploy:contract": "cd deploy && yarn deploy",
     "start:ui": "cd ui && yarn dev",
     "start:chain": "docker run -d --name agoric -p 26657:26657 -p 1317:1317 -p 9090:9090 ghcr.io/agoric/agoric-3-proposals:latest",
