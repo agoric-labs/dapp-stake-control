@@ -9,7 +9,6 @@ import { prepareStakeManagementKit } from './staking-kit.js';
 import {
   customTermsShape,
   makeProposalShapes,
-  PortfolioConfigShape,
   privateArgsShape,
 } from './typeGuards.js';
 
@@ -19,7 +18,6 @@ import {
  * @import {OrchestrationPowers, OrchestrationTools} from '@agoric/orchestration/src/utils/start-helper.js';
  * @import {ChainInfo, Denom, DenomDetail} from '@agoric/orchestration';
  * @import {Marshaller, StorageNode} from '@agoric/internal/src/lib-chainStorage.js';
- * @import {PortfolioConfig} from './typeGuards.js';
  * @import { ZCF } from '@agoric/zoe/src/zoeService/zoe.js';
  * @import {Amount, Ratio} from '@agoric/ertp';
  */
