@@ -1,8 +1,9 @@
 // @ts-check
-import { mustMatch } from '@agoric/internal';
+import { makeTracer, mustMatch } from '@agoric/internal';
 import { Fail } from '@endo/errors';
 import { PortfolioConfigShape } from './typeGuards.js';
 
+const trace = makeTracer('flows');
 const { entries } = Object;
 
 /**
@@ -27,11 +28,11 @@ export const makeStakingPortfolio = async (
   seat,
   offerArgs,
 ) => {
-  console.log('Inside makeStakingPortfolio');
+  trace('Inside makeStakingPortfolio');
   mustMatch(offerArgs, PortfolioConfigShape);
   entries(offerArgs).length === 1 || Fail`only 1 remote currently supported`;
   const [[chainName, plan]] = entries(offerArgs);
-  console.log({ chainName, plan });
+  trace({ chainName, plan });
 
   const [agoric, remoteChain] = await Promise.all([
     orch.getChain('agoric'),
@@ -42,12 +43,12 @@ export const makeStakingPortfolio = async (
   const remoteDenom = stakingTokens[0].denom;
   remoteDenom || Fail`${chainId} does not have stakingTokens in config`;
 
-  console.log('Creating Remote account...');
+  trace('Creating Remote account...');
   const remoteAccount = await remoteChain.makeAccount();
-  console.log('Remote account created successfully');
+  trace('Remote account created successfully');
 
   const remoteChainAddress = await remoteAccount.getAddress();
-  console.log('Remote Chain Address:', remoteChainAddress);
+  trace('Remote Chain Address:', remoteChainAddress);
 
   const assets = await agoric.getVBankAssetInfo();
   const info = await remoteChain.getChainInfo();
