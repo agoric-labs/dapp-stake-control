@@ -1,11 +1,10 @@
-import React from 'react';
 import { useAppStore } from '../state';
 import './Tabs.css';
 
 export const Tabs = () => {
   const { tab } = useAppStore((state) => ({ tab: state.tab }));
 
-  const handleTabClick = (tabNumber) => {
+  const handleTabClick = (tabNumber: number) => {
     useAppStore.setState({ tab: tabNumber });
   };
 

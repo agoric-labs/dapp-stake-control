@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import './PortfolioForm.css';
 import { toast } from 'react-toastify';
 import { TOAST_DURATION } from '../config';
 import { useAppStore } from '../state';
 import { showError } from '../Utils';
-import { OfferArgsPortfolio } from '../interfaces/interfaces';
+import { FrequencyValues, OfferArgsPortfolio } from '../interfaces/interfaces';
 import { type OfferSpec } from '@agoric/smart-wallet/src/offers.js';
 
 const chainOptions = ['Osmosis', 'Noble'];
@@ -39,8 +39,11 @@ export default function PortfolioForm() {
     }
   }, []);
 
-  const updateChainConfig = (chainName, changes) => {
-    setPortfolioConfig((prev) => ({
+  const updateChainConfig = (
+    chainName: string,
+    changes: OfferArgsPortfolio,
+  ) => {
+    setPortfolioConfig((prev: OfferArgsPortfolio) => ({
       ...prev,
       [chainName]: {
         ...prev[chainName],
@@ -63,12 +66,12 @@ export default function PortfolioForm() {
     history.replaceState(null, '', url.href);
   };
 
-  const handleFrequency = (newFreq) => {
+  const handleFrequency = (newFreq: FrequencyValues) => {
     updateChainConfig(selectedChain, { freq: newFreq });
     updateUrlParams({ freq: newFreq });
   };
 
-  const handleToggle = (key, value) => {
+  const handleToggle = (key: string, value: string) => {
     const isChecked = config[key].length > 0;
     const newValue = isChecked ? [] : [value];
 
@@ -80,7 +83,7 @@ export default function PortfolioForm() {
     updateUrlParams({ [key]: newValue.length > 0 ? newValue : null });
   };
 
-  const handleChainUpdate = (e) => {
+  const handleChainUpdate = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const chain = e.target.value;
     setSelectedChain(chain);
 
@@ -90,7 +93,7 @@ export default function PortfolioForm() {
     });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const config = portfolioConfig[selectedChain];
@@ -129,6 +132,7 @@ export default function PortfolioForm() {
           instance: contractInstance,
           publicInvitationMaker: 'makeStakingPortfolio',
         },
+        // @ts-expect-error
         proposal: { give },
         offerArgs,
       };
@@ -155,7 +159,10 @@ export default function PortfolioForm() {
         );
       });
     } catch (error) {
-      showError({ content: error.message, duration: TOAST_DURATION.ERROR });
+      showError({
+        content: error instanceof Error ? error.message : String(error),
+        duration: TOAST_DURATION.ERROR,
+      });
     } finally {
       if (toastId) toast.dismiss(toastId);
       useAppStore.setState({ loading: false });
