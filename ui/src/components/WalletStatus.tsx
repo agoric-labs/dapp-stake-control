@@ -1,7 +1,9 @@
-import React from 'react';
 import './WalletStatus.css';
 
-const WalletStatus = ({ address }) => {
+type WalletStatusProps = {
+  address?: string;
+};
+const WalletStatus = ({ address }: WalletStatusProps) => {
   if (!address) {
     return null;
   }

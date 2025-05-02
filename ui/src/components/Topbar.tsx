@@ -1,6 +1,4 @@
-import React from 'react';
 import Logo from './Logo';
-import gituhbLogo from '/github.svg';
 import './Topbar.css';
 
 export const TopBar = () => {
@@ -11,7 +9,7 @@ export const TopBar = () => {
           href="https://github.com/agoric-labs/dapp-stake-control"
           target="_blank"
         >
-          <img src={gituhbLogo} className="github-logo" alt="Source Code" />
+          <img src="/github.svg" className="github-logo" alt="Source Code" />
           Fork me on GitHub
         </a>
       </div>

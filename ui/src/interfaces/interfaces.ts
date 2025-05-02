@@ -2,15 +2,10 @@ import { makeAgoricWalletConnection } from '@agoric/web-components';
 import { CurrentWalletRecord } from '@agoric/smart-wallet/src/smartWallet.js';
 
 // XXX cross-package import
-import type { PortfolioConfig } from '../../../contract/typeGuards.js';
+// @ts-ignore
+import type { PortfolioConfig } from 'contract/typeGuards.js';
 
 export type Wallet = Awaited<ReturnType<typeof makeAgoricWalletConnection>>;
-
-export interface BalanceCheckParams {
-  walletAddress: string;
-  rpcUrl: string;
-  tokenDenom: string;
-}
 
 export interface AppState {
   wallet?: Wallet;
@@ -24,3 +19,10 @@ export interface AppState {
 }
 
 export type OfferArgsPortfolio = PortfolioConfig;
+
+export type ToastMessageOptions = {
+  content: string;
+  duration?: number;
+};
+
+export type FrequencyValues = 'daily' | 'weekly';

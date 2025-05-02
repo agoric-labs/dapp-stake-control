@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import './App.css';
 import {
   makeAgoricChainStorageWatcher,
@@ -65,7 +65,13 @@ const setup = async (walletAddress: string | undefined) => {
       const { contractInstance } = useAppStore.getState();
 
       const invitations = currentOffer.offerToUsedInvitation.filter(
-        (invitation) => invitation[1].value[0].instance === contractInstance,
+        (invitation) => {
+          const value = invitation[1]?.value;
+          if (Array.isArray(value)) {
+            return value[0] === contractInstance;
+          }
+          return false;
+        },
       );
 
       const sorted = invitations.sort((a, b) => b[0].localeCompare(a[0]));
@@ -115,7 +121,6 @@ function App() {
       <TopBar />
       <div className="container">
         <ToastContainer
-          aria-label
           position="bottom-right"
           hideProgressBar={false}
           newestOnTop={false}

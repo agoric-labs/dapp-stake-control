@@ -1,6 +1,7 @@
 import { type OfferSpec } from '@agoric/smart-wallet/src/offers.js';
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
+// @ts-ignore
 import { MakeStakeManagementKit } from '../../../contract/staking-kit.js';
 import { TOAST_DURATION } from '../config';
 import { useAppStore } from '../state';
@@ -12,11 +13,11 @@ export const StakeForm = () => {
   const [amount, setAmount] = useState(0);
   const [validatorAddress, setValidatorAddress] = useState('');
 
-  const handleAmountToSend = (e) => {
+  const handleAmountToSend = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAmount(Number(e.target.value));
   };
 
-  const handleValidatorAddress = (e) => {
+  const handleValidatorAddress = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValidatorAddress(e.target.value);
   };
 
@@ -63,6 +64,7 @@ export const StakeForm = () => {
           ]),
         },
         offerArgs: {},
+        // @ts-expect-error
         proposal: { give },
       };
 
@@ -93,7 +95,10 @@ export const StakeForm = () => {
         duration: TOAST_DURATION.SUCCESS,
       });
     } catch (error) {
-      showError({ content: error.message, duration: TOAST_DURATION.ERROR });
+      showError({
+        content: error instanceof Error ? error.message : String(error),
+        duration: TOAST_DURATION.ERROR,
+      });
     } finally {
       if (toastId) toast.dismiss(toastId);
       useAppStore.setState({ loading: false });
