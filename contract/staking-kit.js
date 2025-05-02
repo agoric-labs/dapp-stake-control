@@ -3,7 +3,7 @@ import { makeTracer } from '@agoric/internal';
 import { CosmosChainAddressShape } from '@agoric/orchestration';
 import { Fail } from '@endo/errors';
 import { M, mustMatch } from '@endo/patterns';
-import { RemoteConfigShape } from './typeGuards.js';
+import { PUBLIC_TOPICS, RemoteConfigShape } from './typeGuards.js';
 
 const trace = makeTracer('StkC');
 
@@ -12,7 +12,10 @@ const trace = makeTracer('StkC');
  * @import {CosmosChainAddress, OrchestrationAccount} from '@agoric/orchestration';
  * @import {ZoeTools} from '@agoric/orchestration/src/utils/zoe-tools.js';
  * @import { ZCF, ZCFSeat } from '@agoric/zoe/src/zoeService/zoe.js';
+ * @import {MakeRecorderKit, RecorderKit} from '@agoric/zoe/src/contractSupport/recorder.js';
+ * @import {StorageNode} from '@agoric/internal/src/lib-chainStorage.js';
  * @import {RemoteConfig} from './typeGuards.js';
+ * @import {PortfolioEvent} from './stake-types.js';
  */
 
 /**
@@ -22,6 +25,7 @@ const trace = makeTracer('StkC');
  *   assets: any;
  *   remoteChainInfo: any;
  *   stakePlan: RemoteConfig;
+ *   topicKit: RecorderKit<PortfolioEvent>;
  * }} StakingTapState
  */
 
@@ -47,9 +51,10 @@ harden(StakingKitStateShape);
  * @param {{
  *   zcf: ZCF;
  *   zoeTools: ZoeTools;
+ *   makeRecorderKit: MakeRecorderKit;
  * }} powers
  */
-export const prepareStakeManagementKit = (zone, { zcf }) => {
+export const prepareStakeManagementKit = (zone, { zcf, makeRecorderKit }) => {
   return zone.exoClassKit(
     'StakeManagementTapKit',
     {
@@ -57,14 +62,14 @@ export const prepareStakeManagementKit = (zone, { zcf }) => {
       invitationMakers: InvitationMakerI,
     },
     /**
-     * @param {StakingTapState} initialState
+     * @param {Omit<StakingTapState, 'topicKit'>} initialState
+     * @param {StorageNode} storageNode
      * @returns {StakingTapState}
      */
-    (initialState) => {
+    (initialState, storageNode) => {
       mustMatch(initialState, StakingKitStateShape);
-      return harden({
-        ...initialState,
-      });
+      const topicKit = makeRecorderKit(storageNode, PUBLIC_TOPICS.portfolio[1]);
+      return harden({ ...initialState, topicKit });
     },
     {
       holder: {

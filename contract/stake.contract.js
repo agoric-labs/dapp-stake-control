@@ -16,6 +16,7 @@ import {
   PortfolioConfigShape,
   privateArgsShape,
 } from './typeGuards.js';
+import { prepareRecorderKitMakers } from '@agoric/zoe/src/contractSupport/recorder.js';
 
 /**
  * @import {Remote} from '@agoric/vow';
@@ -79,11 +80,17 @@ export const contract = async (
 
   const creatorFacet = prepareChainHubAdmin(zone, chainHub);
 
+  const { makeRecorderKit } = prepareRecorderKitMakers(
+    zone.subZone('recorders').mapStore('recorderKit baggage'),
+    privateArgs.marshaller,
+  );
+
   const makeStakeManagementKit = prepareStakeManagementKit(
     zone.subZone('StkCTap'),
     {
       zcf,
       zoeTools,
+      makeRecorderKit,
     },
   );
 
@@ -123,8 +130,15 @@ export const contract = async (
     schedule.schedule(handler);
   };
 
+  /** @param {bigint} id */
+  const makeStorageNode = (id) =>
+    E(E(privateArgs.storageNode).makeChildNode(`portfolios`)).makeChildNode(
+      `portfolio${id}`,
+    );
+
   const { makeStakingPortfolio } = orchestrateAll(stakingFlows, {
     makeStakeManagementKit,
+    makeStorageNode,
     poll,
   });
 
