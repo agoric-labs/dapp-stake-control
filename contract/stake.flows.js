@@ -39,9 +39,9 @@ export const makeStakingPortfolio = async (
     orch.getChain(chainName),
   ]);
 
-  const { chainId, stakingTokens } = await remoteChain.getChainInfo();
+  const { stakingTokens } = await remoteChain.getChainInfo();
   const remoteDenom = stakingTokens[0].denom;
-  remoteDenom || Fail`${chainId} does not have stakingTokens in config`;
+  remoteDenom || Fail`${chainName} does not have stakingTokens in config`;
 
   trace('Creating Remote account...');
   const remoteAccount = await remoteChain.makeAccount();

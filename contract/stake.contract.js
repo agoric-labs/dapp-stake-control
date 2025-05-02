@@ -6,7 +6,7 @@ import { withOrchestration } from '@agoric/orchestration/src/utils/start-helper.
 import { InvitationShape } from '@agoric/zoe/src/typeGuards.js';
 import { E } from '@endo/far';
 import { M } from '@endo/patterns';
-import * as makeStakingPortfolioFlows from './make-portfolio.flows.js';
+import * as makeStakingPortfolioFlows from './stake.flows.js';
 import { prepareStakeManagementKit } from './staking-kit.js';
 import {
   customTermsShape,
