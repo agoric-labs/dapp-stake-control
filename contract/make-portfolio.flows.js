@@ -3,7 +3,7 @@ import { mustMatch } from '@agoric/internal';
 import { Fail } from '@endo/errors';
 import { PortfolioConfigShape } from './typeGuards.js';
 
-const { entries, values } = Object;
+const { entries } = Object;
 
 /**
  * @import {Orchestrator, OrchestrationFlow} from '@agoric/orchestration';
@@ -17,14 +17,13 @@ const { entries, values } = Object;
  * @param {Orchestrator} orch
  * @param {{
  *   makeStakeManagementKit: MakeStakeManagementKit;
- *   log: (msg: string) => Promise<void>;
  * }} ctx
  * @param {ZCFSeat} seat
  * @param {PortfolioConfig} offerArgs
  */
 export const makeStakingPortfolio = async (
   orch,
-  { log, makeStakeManagementKit },
+  { makeStakeManagementKit },
   seat,
   offerArgs,
 ) => {
