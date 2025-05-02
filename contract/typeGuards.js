@@ -10,7 +10,7 @@ import { M } from '@endo/patterns';
 /**
  * @import {TypedPattern} from '@agoric/internal';
  * @import {StkCTerms} from './stake.contract';
- * @import {Brand, NatValue} from '@agoric/ertp';
+ * @import {Amount, Brand, NatValue} from '@agoric/ertp';
  */
 
 /**
@@ -84,6 +84,15 @@ export const privateArgsShape = M.splitRecord(
   },
 );
 harden(privateArgsShape);
+
+/**
+ * @typedef {{
+ *   makePortfolio: { give: {
+ *     Fee: Amount<'nat'>,
+ *     Retainer: Amount<'nat'>,
+ *   }}
+ * }} ProposalShapes
+ */
 
 /**
  * @param {Brand} brand
