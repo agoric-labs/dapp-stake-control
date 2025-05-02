@@ -29,8 +29,27 @@ test('onboarding: create staking portfolio', async (t) => {
   if (result === null || typeof result !== 'object') {
     throw t.is(typeof result, 'object');
   }
-  t.deepEqual(Object.keys(result), ['invitationMakers']);
+  t.deepEqual(Object.keys(result), ['invitationMakers', 'publicSubscribers']);
   const refund = wallet.deposit(await payouts.Fee);
   t.log('TODO: contract should consume fee', refund);
   t.deepEqual(refund, BLD.units(10));
+
+  t.log(result.publicSubscribers);
+  const { storagePath } = result.publicSubscribers.portfolio;
+  t.is(storagePath, 'fun.portfolios.portfolio123');
+
+  const { storage } = common.bootstrap;
+  const events = storage
+    .getValues('fun.portfolios.portfolio123')
+    .map((v) => JSON.parse(v));
+  t.log('stored', storagePath, events);
+  t.deepEqual(events, [
+    {
+      restaking: true,
+      // XXX marshal brands, bigints
+      retainerBalance: { brand: {}, value: '50000000' },
+      staking: true,
+      type: 'opened',
+    },
+  ]);
 });

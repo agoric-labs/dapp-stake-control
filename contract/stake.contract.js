@@ -3,8 +3,9 @@ import { makeTracer } from '@agoric/internal';
 import { registerChainsAndAssets } from '@agoric/orchestration/src/utils/chain-hub-helper.js';
 import { withOrchestration } from '@agoric/orchestration/src/utils/start-helper.js';
 import { InvitationShape } from '@agoric/zoe/src/typeGuards.js';
+import { E } from '@endo/far';
 import { M } from '@endo/patterns';
-import * as makeStakingPortfolioFlows from './stake.flows.js';
+import * as stakingFlows from './stake.flows.js';
 import { prepareStakeManagementKit } from './staking-kit.js';
 import {
   customTermsShape,
@@ -71,8 +72,21 @@ export const contract = async (
     { zcf, vowTools },
   );
 
-  const { makeStakingPortfolio } = orchestrateAll(makeStakingPortfolioFlows, {
+  const portfoliosNodeP = E(privateArgs.storageNode).makeChildNode(
+    `portfolios`,
+  );
+  /** @param {bigint} id */
+  const makeStorageKit = (id) =>
+    vowTools.asVow(async () => {
+      const nodeP = E(portfoliosNodeP).makeChildNode(`portfolio${id}`);
+      const pathP = E(nodeP).getPath();
+      const [node, path] = await Promise.all([nodeP, pathP]);
+      return { node, path };
+    });
+
+  const { makeStakingPortfolio } = orchestrateAll(stakingFlows, {
     makeStakeManagementKit,
+    makeStorageKit,
   });
 
   const proposalShapes = makeProposalShapes(terms);
