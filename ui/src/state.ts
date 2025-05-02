@@ -9,4 +9,5 @@ export const useAppStore = create<AppState>((set) => ({
   tab: 1,
   currentOffers: null,
   latestInvitation: '',
+  network: 'localhost',
 }));

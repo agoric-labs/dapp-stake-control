@@ -1,33 +1,19 @@
 import React, { useState } from 'react';
 import './NetworkSelector.css';
-
-export const networkConfigs = {
-  devnet: {
-    label: 'Agoric Devnet',
-    url: 'https://devnet.agoric.net/network-config',
-  },
-  emerynet: {
-    label: 'Agoric Emerynet',
-    url: 'https://emerynet.agoric.net/network-config',
-  },
-  localhost: {
-    label: 'Local Network',
-    url: 'https://local.agoric.net/network-config',
-  },
-};
+import { networkConfigs } from '../config.ts';
+import { useAppStore } from '../state.ts';
 
 const NetworkSelector = () => {
-  const [selectedNetwork, setSelectedNetwork] = useState('localhost');
-
+  const { network } = useAppStore.getState();
   const handleNetworkChange = (e) => {
-    setSelectedNetwork(e.target.value);
+    useAppStore.setState({ network: e.target.value });
   };
 
   return (
     <div className="network-select-container">
       <select
         className="network-select"
-        value={selectedNetwork}
+        value={network}
         onChange={handleNetworkChange}
       >
         {Object.entries(networkConfigs).map(([key, { label }]) => (

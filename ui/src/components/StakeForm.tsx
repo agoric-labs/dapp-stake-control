@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 // @ts-ignore
 import { MakeStakeManagementKit } from '../../../contract/staking-kit.js';
 import { TOAST_DURATION } from '../config';
-import { useAppStore } from '../state';
+import { useAppStore } from '../state.js';
 import { showError, showSuccess } from '../Utils';
 
 export const StakeForm = () => {
