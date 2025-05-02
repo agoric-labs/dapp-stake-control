@@ -10,11 +10,9 @@ import { RemoteConfigShape } from './typeGuards.js';
 const trace = makeTracer('StkCTap');
 
 /**
- * @import {VTransferIBCEvent} from '@agoric/vats';
  * @import {Vow, VowTools} from '@agoric/vow';
  * @import {Zone} from '@agoric/zone';
  * @import {CosmosChainAddress, OrchestrationAccount} from '@agoric/orchestration';
- * @import {FungibleTokenPacketData} from '@agoric/cosmic-proto/ibc/applications/transfer/v2/packet.js';
  * @import {ZoeTools} from '@agoric/orchestration/src/utils/zoe-tools.js';
  * @import { ZCF, ZCFSeat } from '@agoric/zoe/src/zoeService/zoe.js';
  * @import {RemoteConfig} from './typeGuards.js';
@@ -60,11 +58,6 @@ export const prepareStakeManagementKit = (zone, { zcf, vowTools, log }) => {
   return zone.exoClassKit(
     'StakeManagementTapKit',
     {
-      tap: M.interface('StakeManagementTap', {
-        receiveUpcall: M.call(M.record()).returns(
-          M.or(VowShape, M.undefined()),
-        ),
-      }),
       transferWatcher: M.interface('TransferWatcher', {
         onFulfilled: M.call(M.undefined())
           .optional(M.bigint())
@@ -84,20 +77,6 @@ export const prepareStakeManagementKit = (zone, { zcf, vowTools, log }) => {
       });
     },
     {
-      tap: {
-        /**
-         * @param {VTransferIBCEvent} event
-         */
-        receiveUpcall(event) {
-          trace('receiveUpcall', event);
-
-          const tx = /** @type {FungibleTokenPacketData} */ (
-            JSON.parse(atob(event.packet.data))
-          );
-          trace('receiveUpcall packet data', tx);
-          trace('receiveUpcall completed');
-        },
-      },
       transferWatcher: {
         /**
          * @param {void} _result
