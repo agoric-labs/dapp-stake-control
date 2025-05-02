@@ -10,24 +10,20 @@ import { E } from '@endo/far';
  * @import {CosmosChainInfo, Denom, DenomDetail} from '@agoric/orchestration';
  * @import {StorageNode} from '@agoric/internal/src/lib-chainStorage.js';
  * @import {StartFn, StkCTerms} from '../../contract/stake.contract.js';
+ * @import {TimerService} from '@agoric/time';
  */
 
 const trace = makeTracer('start StkC', true);
 
 /**
- * @param {BootstrapPowers & {
- *   consume: { chainStorage: StorageNode },
- *   installation: {
- *     consume: {
- *       StkC: Installation<StartFn>;
- *     };
- *   };
- *   instance: {
- *     produce: {
- *       StkC: Producer<Instance<StartFn>>;
- *     };
- *   };
- * }} powers
+ * @typedef {BootstrapPowers & PromiseSpaceOf<{
+ *     chainStorage: StorageNode;
+ *     chainTimerService: TimerService;
+ *   }> & {
+ *   installation: PromiseSpaceOf<{ StkC: Installation<StartFn>}>;
+ *   instance: PromiseSpaceOf<{ StkC: Producer<Instance<StartFn>> }>;
+ * }} StkBootPowers
+ * @param {StkBootPowers} powers
  * @param {{
  *   options: {
  *     chainInfo: Record<string, CosmosChainInfo>;

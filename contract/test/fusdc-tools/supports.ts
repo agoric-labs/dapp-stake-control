@@ -158,7 +158,8 @@ export const commonSetup = async (t: ExecutionContext<any>) => {
     transfer: transferMiddleware,
   });
   const timer = buildZoeManualTimer(t.log);
-  const marshaller = makeFakeBoard().getPublishingMarshaller();
+  const board = makeFakeBoard();
+  const marshaller = board.getPublishingMarshaller();
   const storage = makeFakeStorageKit(
     'fun', // Fast USDC Node
   );
@@ -246,6 +247,7 @@ export const commonSetup = async (t: ExecutionContext<any>) => {
       agoricNames,
       agoricNamesAdmin,
       bankManager,
+      board,
       timer,
       localchain,
       cosmosInterchainService,

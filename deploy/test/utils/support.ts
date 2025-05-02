@@ -8,8 +8,16 @@ import { basename, join } from 'path';
 import { inspect } from 'util';
 
 import type { TypedPublished } from '@agoric/client-utils';
+import type { CoreEvalSDKType } from '@agoric/cosmic-proto/swingset/swingset.js';
+import { computronCounter } from '@agoric/cosmic-swingset/src/computron-counter.js';
 import { buildSwingset } from '@agoric/cosmic-swingset/src/launch-chain.js';
+import {
+  defaultBeansPerVatCreation,
+  defaultBeansPerXsnapComputron,
+} from '@agoric/cosmic-swingset/src/sim-params.js';
 import { makeHelpers } from '@agoric/cosmic-swingset/tools/inquisitor.mjs';
+import type { Amount, Brand } from '@agoric/ertp';
+import type { EconomyBootstrapPowers } from '@agoric/inter-protocol/src/proposals/econ-behaviors.js';
 import {
   BridgeId,
   makeTracer,
@@ -22,43 +30,31 @@ import { makeFakeStorageKit } from '@agoric/internal/src/storage-test-utils.js';
 import { krefOf } from '@agoric/kmarshal';
 import { makeTestAddress } from '@agoric/orchestration/tools/make-test-address.js';
 import { initSwingStore } from '@agoric/swing-store';
-import { loadSwingsetConfigFile } from '@agoric/swingset-vat';
-import { makeSlogSender } from '@agoric/telemetry';
-import { TimeMath, type Timestamp } from '@agoric/time';
-import { fakeLocalChainBridgeTxMsgHandler } from '@agoric/vats/tools/fake-bridge.js';
-import { Fail } from '@endo/errors';
-
-import type { Amount, Brand } from '@agoric/ertp';
 import type {
   EndoZipBase64Bundle,
   ManagerType,
   SwingSetConfig,
 } from '@agoric/swingset-vat';
+import { loadSwingsetConfigFile } from '@agoric/swingset-vat';
+import type { SwingsetController } from '@agoric/swingset-vat/src/controller/controller.js';
 import {
   makeRunUtils,
   type RunHarness,
   type RunUtils,
 } from '@agoric/swingset-vat/tools/run-utils.js';
+import { makeSlogSender } from '@agoric/telemetry';
+import { TimeMath, type Timestamp } from '@agoric/time';
+import type { BridgeHandler, IBCDowncallMethod, IBCMethod } from '@agoric/vats';
+import type { BootstrapRootObject } from '@agoric/vats/src/core/lib-boot.js';
 import {
   boardSlottingMarshaller,
   slotToBoardRemote,
 } from '@agoric/vats/tools/board-utils.js';
-
+import { fakeLocalChainBridgeTxMsgHandler } from '@agoric/vats/tools/fake-bridge.js';
+import { Fail } from '@endo/errors';
+import type { EProxy, ERef } from '@endo/eventual-send';
 import type { ExecutionContext as AvaT } from 'ava';
-
-import type { CoreEvalSDKType } from '@agoric/cosmic-proto/swingset/swingset.js';
-import { computronCounter } from '@agoric/cosmic-swingset/src/computron-counter.js';
-import {
-  defaultBeansPerVatCreation,
-  defaultBeansPerXsnapComputron,
-} from '@agoric/cosmic-swingset/src/sim-params.js';
-import type { EconomyBootstrapPowers } from '@agoric/inter-protocol/src/proposals/econ-behaviors.js';
-import type { SwingsetController } from '@agoric/swingset-vat/src/controller/controller.js';
-import type { BridgeHandler, IBCDowncallMethod, IBCMethod } from '@agoric/vats';
-import type { BootstrapRootObject } from '@agoric/vats/src/core/lib-boot.js';
-import type { EProxy } from '@endo/eventual-send';
 import { FileSystemCache, NodeFetchCache } from 'node-fetch-cache';
-import { tmpdir } from 'node:os';
 import { icaMocks, protoMsgMockMap, protoMsgMocks } from './ibc/mocks.js';
 
 const trace = makeTracer('BSTSupport', false);
