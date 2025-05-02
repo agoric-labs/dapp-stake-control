@@ -1,6 +1,6 @@
 type LogoProps = {
-  width: string;
-  height: string;
+  width?: string;
+  height?: string;
 };
 
 const Logo = ({ width = '250px', height = '250px' }: LogoProps) => (

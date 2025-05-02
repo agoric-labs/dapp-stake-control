@@ -5,6 +5,7 @@ import { CurrentWalletRecord } from '@agoric/smart-wallet/src/smartWallet.js';
 // @ts-ignore
 import type { PortfolioConfig } from '../../../contract/typeGuards.js';
 import { networkConfigs } from '../config.js';
+import { makeAgoricChainStorageWatcher } from '@agoric/rpc';
 
 export type Wallet = Awaited<ReturnType<typeof makeAgoricWalletConnection>>;
 
@@ -18,6 +19,7 @@ export interface AppState {
   currentOffers: CurrentWalletRecord | null;
   latestInvitation: string;
   network: keyof typeof networkConfigs;
+  watcher: ReturnType<typeof makeAgoricChainStorageWatcher> | null;
 }
 
 export type OfferArgsPortfolio = PortfolioConfig;

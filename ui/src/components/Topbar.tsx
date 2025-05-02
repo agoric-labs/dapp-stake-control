@@ -1,6 +1,6 @@
 import Logo from './Logo';
 import './Topbar.css';
-import NetworkSelector from './NetworkSelector.tsx';
+import NetworkSelector from './NetworkSelector';
 
 export const TopBar = () => {
   return (
