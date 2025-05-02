@@ -86,17 +86,7 @@ test.serial('register token and deploy contract', async (t) => {
     ),
   );
 
-  await evalProposal(
-    buildProposal('../src/init-contract.js', [
-      '--chainInfo',
-      JSON.stringify({
-        agoric: fetchedChainInfo.agoric,
-        osmosis: fetchedChainInfo.osmosis,
-      }),
-      '--assetInfo',
-      assetInfo,
-    ]),
-  );
+  await evalProposal(buildProposal('../src/init-contract.js'));
 
   const instances = JSON.stringify(
     JSON.parse(storage.data.get('published.agoricNames.instance')!).values.at(

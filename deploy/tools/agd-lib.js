@@ -9,7 +9,7 @@ const agdBinary = 'agd';
  * @param {Record<string, unknown>} record - e.g. { color: 'blue' }
  * @returns {string[]} - e.g. ['--color', 'blue']
  */
-export const flags = record => {
+export const flags = (record) => {
   // TODO? support --yes with boolean?
 
   /** @type {[string, string][]} */
@@ -69,7 +69,7 @@ export const makeAgd = ({ execFileSync, log = console.log }) => {
        *         | [mod: 'ibc', ...rest: string[]]
        * } qArgs
        */
-      query: async qArgs => {
+      query: async (qArgs) => {
         const out = exec(['query', ...qArgs, ...nodeArgs, ...outJson], {
           encoding: 'utf-8',
           stdio: ['ignore', 'pipe', 'ignore'],
@@ -154,14 +154,14 @@ export const makeAgd = ({ execFileSync, log = console.log }) => {
         },
         showAddress: nameHub.lookup,
         /** @param {string} name */
-        delete: name => {
+        delete: (name) => {
           return exec([...keyringArgs, 'keys', 'delete', name, '-y']);
         },
       },
       /**
        * @param {Record<string, unknown>} opts
        */
-      withOpts: opts => make({ home, keyringBackend, rpcAddrs, ...opts }),
+      withOpts: (opts) => make({ home, keyringBackend, rpcAddrs, ...opts }),
     });
     return rw;
   };
@@ -190,7 +190,7 @@ export const makeContainer = ({
   cmd = ['kubectl', 'exec', '-i'],
   log = console.log,
   join = (...paths) => paths.join('/'),
-  basename = path => path.split('/').at(-1) || assert.fail('bad path'),
+  basename = (path) => path.split('/').at(-1) || assert.fail('bad path'),
 }) => {
   /** @param {{ [k: string]: unknown }} hFlags */
   const make = (hFlags = {}) => {
@@ -200,13 +200,13 @@ export const makeContainer = ({
        */
       execFileSync: (file, args, opts = returnString) => {
         const execArgs = [...cmd.slice(1), container];
-        log(`${pod}/${container}$`, ...[file, ...args].map(x => `${x}`));
+        log(`${pod}/${container}$`, ...[file, ...args].map((x) => `${x}`));
         const exFlags = flags({ container, ...hFlags });
         const [hFile, ...hArgs] = [...cmd, pod, ...exFlags];
         return execFileSync(hFile, [...hArgs, '--', file, ...args], opts);
       },
       /** @param {string[]} paths } */
-      copyFiles: paths => {
+      copyFiles: (paths) => {
         // Create the destination directory if it doesn't exist
         runtime.execFileSync('mkdir', ['-p', destDir], returnString);
         for (const path of paths) {
@@ -219,11 +219,11 @@ export const makeContainer = ({
         }
         const lsOutput = runtime.execFileSync('ls', [destDir], returnString);
         log(`ls ${destDir}:\n`, lsOutput);
-        const destPaths = paths.map(p => join(destDir, basename(p)));
+        const destPaths = paths.map((p) => join(destDir, basename(p)));
         return destPaths;
       },
       /** @param {{ [k: string]: unknown }} newFlags */
-      withFlags: newFlags => make({ ...hFlags, ...newFlags }),
+      withFlags: (newFlags) => make({ ...hFlags, ...newFlags }),
     };
     return runtime;
   };
