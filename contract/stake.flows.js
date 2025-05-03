@@ -8,9 +8,11 @@ const { entries } = Object;
 
 /**
  * @import {Orchestrator, OrchestrationFlow} from '@agoric/orchestration';
- * @import {MakeStakeManagementKit} from './staking-kit.js';
  * @import { ZCFSeat } from '@agoric/zoe/src/zoeService/zoe.js';
+ * @import {StorageNode} from '@agoric/internal/src/lib-chainStorage.js';
+ * @import {MakeStakeManagementKit} from './staking-kit.js';
  * @import {PortfolioConfig} from './typeGuards.js'
+ * @import {PortfolioEvent} from './types.js';
  */
 
 /**
@@ -18,13 +20,14 @@ const { entries } = Object;
  * @param {Orchestrator} orch
  * @param {{
  *   makeStakeManagementKit: MakeStakeManagementKit;
+ *   makeStorageKit: (id: bigint) => Promise<{node:StorageNode,path:string}>;
  * }} ctx
  * @param {ZCFSeat} seat
  * @param {PortfolioConfig} offerArgs
  */
 export const makeStakingPortfolio = async (
   orch,
-  { makeStakeManagementKit },
+  { makeStakeManagementKit, makeStorageKit },
   seat,
   offerArgs,
 ) => {
@@ -44,13 +47,33 @@ export const makeStakingPortfolio = async (
   const remoteAccount = await remoteChain.makeAccount();
   trace('Remote account created successfully');
 
+  const id = 123n; // TODO
+  const { node, path } = await makeStorageKit(id);
+
   const stakeManagementKit = makeStakeManagementKit({
     remoteAccount,
     stakePlan: plan,
     remoteDenom,
+    storageNode: node,
+    storagePath: path,
   });
 
   seat.exit();
-  return harden({ invitationMakers: stakeManagementKit.invitationMakers });
+  const publicSubscribers = stakeManagementKit.topics.getPublicTopics();
+  const result = harden({
+    invitationMakers: stakeManagementKit.invitationMakers,
+    publicSubscribers,
+  });
+
+  /** @type {PortfolioEvent} */
+  const e0 = {
+    type: 'opened',
+    // TODO: stakeManagementKit.foo.getRetainerBalance()
+    retainerBalance: seat.getProposal().give.Retainer,
+    staking: (plan.onReceipt || []).includes('stake'),
+    restaking: (plan.onRewards || []).includes('restake'),
+  };
+  stakeManagementKit.storing.logEvent(e0);
+  return result;
 };
 harden(makeStakingPortfolio);

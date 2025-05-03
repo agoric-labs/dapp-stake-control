@@ -11,6 +11,8 @@ import { M } from '@endo/patterns';
  * @import {TypedPattern} from '@agoric/internal';
  * @import {StkCTerms} from './stake.contract';
  * @import {Amount, Brand, NatValue} from '@agoric/ertp';
+ * @import {Pattern} from '@endo/patterns';
+ * @import {PortfolioEvent} from './types';
  */
 
 /**
@@ -111,4 +113,12 @@ export const makeProposalShapes = (ct) => {
       ),
     }),
   });
+};
+
+/** @type {TypedPattern<PortfolioEvent>} */
+export const PortfolioEventShape = M.any(); // TODO
+
+/** @satisfies {{ [name: string]: [description: string, valueShape: Pattern] }} */
+export const PUBLIC_TOPICS = {
+  portfolio: ['Portfolio status', PortfolioEventShape],
 };
