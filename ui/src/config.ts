@@ -32,3 +32,5 @@ export const networkConfigs = {
     chainId: 'agoriclocal',
   },
 };
+
+export type Network = keyof typeof networkConfigs;

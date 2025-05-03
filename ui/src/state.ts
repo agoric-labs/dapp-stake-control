@@ -1,4 +1,3 @@
-import { makeAgoricChainStorageWatcher } from '@agoric/rpc/dist/src/chainStorageWatcher';
 import { AppState } from './interfaces/interfaces';
 import { create } from 'zustand';
 
@@ -11,5 +10,6 @@ export const useAppStore = create<AppState>((set) => ({
   currentOffers: null,
   latestInvitation: '',
   network: 'localhost',
+  isNetworkChanging: false,
   watcher: null,
 }));

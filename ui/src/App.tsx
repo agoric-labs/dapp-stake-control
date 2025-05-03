@@ -17,6 +17,7 @@ function App() {
     tab: state.tab,
     currentOffers: state.currentOffers,
     network: state.network,
+    isNetworkChanging: state.isNetworkChanging,
     watcher: state.watcher,
   }));
 
