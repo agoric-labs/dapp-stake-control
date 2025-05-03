@@ -5,7 +5,6 @@ import {
 } from '@agoric/web-components';
 import { networkConfigs } from './config';
 import { useAppStore } from './state';
-import { CurrentWalletRecord } from '@agoric/smart-wallet/src/smartWallet.js';
 import {
   AgoricChainStoragePathKind as Kind,
   makeAgoricChainStorageWatcher,
@@ -56,7 +55,6 @@ export const connectWallet = async () => {
 
 export const createWatcherHandlers = (
   watcher: ReturnType<typeof makeAgoricChainStorageWatcher>,
-  walletAddress: string | undefined,
 ) => {
   return {
     watchInstances: () => {
@@ -95,4 +93,14 @@ export const setupWatcher = ({
   useAppStore.setState({
     watcher: makeAgoricChainStorageWatcher(api, chainId),
   });
+
+  const { watcher } = useAppStore.getState();
+
+  if (!watcher) {
+    throw Error('watcher is not defined');
+  }
+
+  const handlers = createWatcherHandlers(watcher);
+  handlers.watchInstances();
+  handlers.watchBrands();
 };

@@ -10,14 +10,13 @@ import { makeAgoricChainStorageWatcher } from '@agoric/rpc';
 export type Wallet = Awaited<ReturnType<typeof makeAgoricWalletConnection>>;
 
 export interface AppState {
-  wallet?: Wallet;
+  wallet: Wallet | null;
   contractInstance?: unknown;
-  brands?: Record<string, unknown>;
+  brands?: Record<string, unknown> | null;
   loading: boolean;
   error?: string;
   tab: number;
   currentOffers: CurrentWalletRecord | null;
-  latestInvitation: string;
   network: keyof typeof networkConfigs;
   isNetworkChanging: boolean;
   watcher: ReturnType<typeof makeAgoricChainStorageWatcher> | null;

@@ -1,6 +1,5 @@
 import Logo from './Logo';
 import './Topbar.css';
-import NetworkSelector from './NetworkSelector';
 import { ConnectionModal } from './ConnectionModal.js';
 
 export const TopBar = () => {
