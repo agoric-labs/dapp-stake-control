@@ -54,7 +54,7 @@ export const startContract = async <SF extends (...args: any[]) => any>(
 export const executeOffer = async (
   zoe: ZoeService,
   when: VowTools['when'],
-  spec: OfferSpec,
+  spec: OfferSpec & { invitationSpec: { source: 'contract' } },
   providePurse?: (b: Brand) => Purse,
 ) => {
   const { invitationSpec, proposal, offerArgs } = spec;

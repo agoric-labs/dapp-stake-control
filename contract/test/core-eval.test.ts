@@ -6,7 +6,7 @@ import { test } from '@agoric/zoe/tools/prepare-test-env-ava.js';
 import { makeIssuerKit } from '@agoric/ertp';
 import { makePromiseSpace } from '@agoric/vats';
 import { makeWellKnownSpaces } from '@agoric/vats/src/core/utils.js';
-import type { AmountKeywordRecord, ZoeService } from '@agoric/zoe';
+import type { ZoeService } from '@agoric/zoe';
 import type { Instance } from '@agoric/zoe/src/zoeService/utils.js';
 import { setUpZoeForTest } from '@agoric/zoe/tools/setup-zoe.js';
 import { withAmountUtils } from '@agoric/zoe/tools/test-utils.js';
@@ -17,10 +17,7 @@ import {
 } from '../../deploy/src/start-contract.js';
 import * as contractExports from '../stake.contract.js';
 import { commonSetup } from './fusdc-tools/supports.js';
-import { executeOffer } from './supports.js';
-import type { OfferSpec } from '@agoric/smart-wallet/src/offers.js';
-import type { PortfolioConfig } from '../typeGuards.js';
-import { Fail } from '@endo/errors';
+import { makeCustomer, makeWallet } from './stake-actors.js';
 
 const { entries } = Object;
 
@@ -92,32 +89,11 @@ test('coreEval code without swingset', async (t) => {
   t.log('found StkC instance', instance);
   t.is(passStyleOf(instance), 'remotable');
 
-  // XXX lots of code duplicated from stake.contract.test.ts
-  const offerArgs: PortfolioConfig = {
-    osmosis: { freq: 'daily', onReceipt: ['stake'], onRewards: ['restake'] },
-  };
-  const give: AmountKeywordRecord = harden({
-    Fee: BLD.units(10),
-    Retainer: BLD.units(50),
-  });
-  const publicInvitationMaker = 'makeStakingPortfolio';
-  const spec: OfferSpec = {
-    id: 'msp-1',
-    invitationSpec: { source: 'contract', instance, publicInvitationMaker },
-    offerArgs,
-    proposal: { give },
-  };
-  t.log(spec);
-  const myBLD = BLD.issuer.makeEmptyPurse();
-  myBLD.deposit(BLD.mint.mintPayment(BLD.units(100)));
-  /** @param {Brand} b */
-  const providePurse = (b) =>
-    b === BLD.brand ? myBLD : Fail`no purse for ${b}`;
   const { vowTools } = utils;
-  const { result, payouts } = await executeOffer(
-    zoe,
-    vowTools.when,
-    spec,
-    providePurse,
-  );
+  const wallet = makeWallet(BLD, zoe, vowTools.when);
+  const silvia = makeCustomer(wallet, instance, BLD);
+  const { payouts } = await silvia.makePortfolio(t);
+  const refund = wallet.deposit(await payouts.Fee);
+  t.log('TODO: contract should consume fee', refund);
+  t.deepEqual(refund, BLD.units(10));
 });
