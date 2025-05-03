@@ -1,17 +1,14 @@
 // @ts-check
 import { makeTracer } from '@agoric/internal';
-import { prepareChainHubAdmin } from '@agoric/orchestration/src/exos/chain-hub-admin.js';
 import { registerChainsAndAssets } from '@agoric/orchestration/src/utils/chain-hub-helper.js';
 import { withOrchestration } from '@agoric/orchestration/src/utils/start-helper.js';
 import { InvitationShape } from '@agoric/zoe/src/typeGuards.js';
-import { E } from '@endo/far';
 import { M } from '@endo/patterns';
-import * as makeStakingPortfolioFlows from './make-portfolio.flows.js';
+import * as makeStakingPortfolioFlows from './stake.flows.js';
 import { prepareStakeManagementKit } from './staking-kit.js';
 import {
   customTermsShape,
   makeProposalShapes,
-  PortfolioConfigShape,
   privateArgsShape,
 } from './typeGuards.js';
 
@@ -21,7 +18,6 @@ import {
  * @import {OrchestrationPowers, OrchestrationTools} from '@agoric/orchestration/src/utils/start-helper.js';
  * @import {ChainInfo, Denom, DenomDetail} from '@agoric/orchestration';
  * @import {Marshaller, StorageNode} from '@agoric/internal/src/lib-chainStorage.js';
- * @import {PortfolioConfig} from './typeGuards.js';
  * @import { ZCF } from '@agoric/zoe/src/zoeService/zoe.js';
  * @import {Amount, Ratio} from '@agoric/ertp';
  */
@@ -58,7 +54,7 @@ export const contract = async (
   zcf,
   privateArgs,
   zone,
-  { chainHub, orchestrateAll, vowTools, zoeTools },
+  { chainHub, orchestrateAll, vowTools },
 ) => {
   console.log('Inside Contract');
   const terms = zcf.getTerms();
@@ -70,51 +66,35 @@ export const contract = async (
     privateArgs.assetInfo,
   );
 
-  const creatorFacet = prepareChainHubAdmin(zone, chainHub);
-
-  // UNTIL https://github.com/Agoric/agoric-sdk/issues/9066
-  const logNode = E(privateArgs.storageNode).makeChildNode('log');
-  /** @type {(msg: string) => Vow<void>} */
-  const log = (msg) => vowTools.watch(E(logNode).setValue(msg));
-
   const makeStakeManagementKit = prepareStakeManagementKit(
     zone.subZone('StkCTap'),
-    {
-      zcf,
-      vowTools,
-      log,
-      zoeTools,
-    },
+    { zcf, vowTools },
   );
 
   const { makeStakingPortfolio } = orchestrateAll(makeStakingPortfolioFlows, {
     makeStakeManagementKit,
-    log,
   });
 
   const proposalShapes = makeProposalShapes(terms);
   const publicFacet = zone.exo(
     'Staking API',
     M.interface('Staking API', {
-      makeStakingPortfolio: M.callWhen()
-        .optional(PortfolioConfigShape)
-        .returns(InvitationShape),
+      makeStakingPortfolio: M.callWhen().returns(InvitationShape),
     }),
     {
-      /** @param {PortfolioConfig} config */
-      makeStakingPortfolio(config) {
-        trace('makeStakingPortfolio(', config, ')');
+      makeStakingPortfolio() {
+        trace('makeStakingPortfolio');
         return zcf.makeInvitation(
           makeStakingPortfolio,
           'makeStakingPortfolio',
-          undefined,
+          undefined, // custom details
           proposalShapes.makePortfolio,
         );
       },
     },
   );
 
-  return { publicFacet, creatorFacet };
+  return { publicFacet };
 };
 harden(contract);
 

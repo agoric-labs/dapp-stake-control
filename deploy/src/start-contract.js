@@ -1,3 +1,5 @@
+// TODO: BootstrapPowers ambient types
+// @ts-nocheck
 import { AmountMath } from '@agoric/ertp';
 import { deeplyFulfilledObject, makeTracer } from '@agoric/internal';
 import { E } from '@endo/far';
