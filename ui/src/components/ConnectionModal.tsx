@@ -18,22 +18,25 @@ export const ConnectionModal = () => {
     setSelectedNetwork(e.target.value as Network);
   };
 
+  const disconnect = () => {
+    useAppStore.setState({
+      wallet: null,
+      watcher: null,
+      contractInstance: null,
+      brands: null,
+    });
+  };
+
   const connect = async () => {
     try {
       useAppStore.setState({ network: selectedNetwork });
       const { api, chainId } = networkConfigs[selectedNetwork];
 
-      // create a watcher instance for selectedNetwork
+      // setup watcher instance for the selectedNetwork
       setupWatcher({ api, chainId });
       if (!watcher) throw Error('Watcher is not defined');
 
-      // connect wallet using the selectedNetwork
       await connectWallet();
-
-      // setup hanlders to watch instances and brands
-      const handlers = createWatcherHandlers(watcher, wallet?.address);
-      handlers.watchInstances();
-      handlers.watchBrands();
       setShowModal(false);
       showSuccess({ content: 'Wallet Connected', duration: 1000 });
     } catch (err) {
@@ -44,9 +47,18 @@ export const ConnectionModal = () => {
 
   return (
     <>
-      <button className="connect-wallet-btn" onClick={() => setShowModal(true)}>
-        Connect Wallet
-      </button>
+      {!wallet ? (
+        <button
+          className="connect-wallet-btn"
+          onClick={() => setShowModal(true)}
+        >
+          Connect Wallet
+        </button>
+      ) : (
+        <button className="disconnect-wallet-btn" onClick={disconnect}>
+          Disconnect Wallet
+        </button>
+      )}
 
       {showModal && (
         <div className="modal-backdrop">
