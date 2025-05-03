@@ -1,4 +1,3 @@
-import React from 'zustand';
 import PortfolioForm from './PortfolioForm';
 import { StakeForm } from './StakeForm';
 import { Tabs } from './Tabs';
@@ -7,11 +6,7 @@ import { useAppStore } from '../state';
 import './ContentContainer.css';
 
 export const ContentContainer = () => {
-  const { wallet, tab } = useAppStore.getState();
-
-  if (!wallet) {
-    throw Error('wallet is not defined');
-  }
+  const { tab } = useAppStore.getState();
 
   const renderTabContent = () => {
     switch (tab) {
@@ -27,7 +22,7 @@ export const ContentContainer = () => {
     <div className="main-container">
       <Tabs />
       <div className="content">
-        <WalletStatus address={wallet.address} />
+        <WalletStatus />
         {renderTabContent()}
       </div>
     </div>

@@ -1,14 +1,17 @@
+import { useAppStore } from '../state.js';
 import './WalletStatus.css';
 
-type WalletStatusProps = {
-  address?: string;
-};
-const WalletStatus = ({ address }: WalletStatusProps) => {
-  if (!address) {
+const WalletStatus = () => {
+  const { wallet } = useAppStore.getState();
+
+  if (!wallet?.address) {
     return null;
   }
 
-  const abbreviatedAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
+  const abbreviatedAddress = `${wallet.address.slice(
+    0,
+    6,
+  )}...${wallet.address.slice(-4)}`;
 
   return (
     <div className="wallet-status">
