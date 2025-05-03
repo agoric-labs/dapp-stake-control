@@ -90,17 +90,12 @@ export const setupWatcher = ({
   api: string;
   chainId: string;
 }) => {
-  useAppStore.setState({
-    watcher: makeAgoricChainStorageWatcher(api, chainId),
-  });
-
-  const { watcher } = useAppStore.getState();
-
-  if (!watcher) {
-    throw Error('watcher is not defined');
-  }
+  const watcher = makeAgoricChainStorageWatcher(api, chainId);
+  useAppStore.setState({ watcher });
 
   const handlers = createWatcherHandlers(watcher);
   handlers.watchInstances();
   handlers.watchBrands();
+
+  return watcher;
 };

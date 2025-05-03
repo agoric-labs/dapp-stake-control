@@ -32,15 +32,18 @@ export const ConnectionModal = () => {
       useAppStore.setState({ network: selectedNetwork });
       const { api, chainId } = networkConfigs[selectedNetwork];
 
-      // setup watcher instance for the selectedNetwork
-      setupWatcher({ api, chainId });
-      if (!watcher) throw Error('Watcher is not defined');
+      const watcher = setupWatcher({ api, chainId });
+      if (!watcher) throw Error('watcher is not defined');
 
       await connectWallet();
       setShowModal(false);
       showSuccess({ content: 'Wallet Connected', duration: 1000 });
     } catch (err) {
-      console.error(err);
+      if (err instanceof Error) {
+        console.error(err.message);
+      } else {
+        console.error('An unknown error occurred:', err);
+      }
       alert('Failed to connect wallet. Please try again.');
     }
   };
