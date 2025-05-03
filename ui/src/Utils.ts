@@ -82,33 +82,6 @@ export const createWatcherHandlers = (
         },
       );
     },
-
-    watchWallet: () => {
-      if (!walletAddress) return;
-
-      watcher.watchLatest<CurrentWalletRecord>(
-        [Kind.Data, `published.wallet.${walletAddress}.current`],
-        (co) => {
-          const currentOffer = co || null;
-          if (!currentOffer) return;
-
-          useAppStore.setState({ currentOffers: currentOffer });
-
-          if (!currentOffer.offerToUsedInvitation) return;
-
-          const { contractInstance } = useAppStore.getState();
-
-          const invitations = currentOffer.offerToUsedInvitation.filter(
-            ([, details]) =>
-              Array.isArray(details.value) &&
-              details.value[0] === contractInstance,
-          );
-
-          const sorted = invitations.sort((a, b) => b[0].localeCompare(a[0]));
-          useAppStore.setState({ latestInvitation: sorted[0][0] });
-        },
-      );
-    },
   };
 };
 

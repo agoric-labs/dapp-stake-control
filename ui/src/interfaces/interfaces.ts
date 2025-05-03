@@ -19,6 +19,7 @@ export interface AppState {
   currentOffers: CurrentWalletRecord | null;
   latestInvitation: string;
   network: keyof typeof networkConfigs;
+  isNetworkChanging: boolean;
   watcher: ReturnType<typeof makeAgoricChainStorageWatcher> | null;
 }
 

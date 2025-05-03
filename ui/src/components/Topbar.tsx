@@ -1,6 +1,7 @@
 import Logo from './Logo';
 import './Topbar.css';
 import NetworkSelector from './NetworkSelector';
+import { ConnectionModal } from './ConnectionModal.js';
 
 export const TopBar = () => {
   return (
@@ -22,7 +23,7 @@ export const TopBar = () => {
         <Logo height="80px" width="90px" />
         <h1 className="title">Stake Control</h1>
       </div>
-      <NetworkSelector />
+      <ConnectionModal />
     </div>
   );
 };
