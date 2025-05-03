@@ -4,15 +4,15 @@ import { toast } from 'react-toastify';
 import { TOAST_DURATION } from '../config';
 import { useAppStore } from '../state';
 import { showError } from '../Utils';
-import {
-  chainOptions,
-  FrequencyValues,
-  SupportedChain,
-} from '../interfaces/interfaces';
+import { chainOptions, SupportedChain } from '../interfaces/interfaces';
 import { type OfferSpec } from '@agoric/smart-wallet/src/offers.js';
-// XXX cross-package import
-// @ts-ignore
-import type { PortfolioConfig } from '../../../contract/typeGuards.js';
+import type {
+  PortfolioConfig,
+  PollingFrequency,
+  ReceiptAction,
+  RewardsAction,
+  RemoteConfig,
+} from 'staking-contract';
 
 export default function PortfolioForm() {
   const [selectedChain, setSelectedChain] = useState<SupportedChain | ''>('');
@@ -27,9 +27,14 @@ export default function PortfolioForm() {
     const validChains = chainOptions.map((c) => c.toLowerCase());
 
     if (chainParam && validChains.includes(chainParam)) {
-      const freq = searchParams.get('freq') || '';
-      const onReceipt = searchParams.has('onReceipt') ? ['stake'] : [];
-      const onRewards = searchParams.has('onRewards') ? ['restake'] : [];
+      const freq = (searchParams.get('freq') as PollingFrequency) || '';
+
+      const onReceipt = searchParams.has('onReceipt')
+        ? (['stake'] as ReceiptAction[])
+        : [];
+      const onRewards = searchParams.has('onRewards')
+        ? (['restake'] as RewardsAction[])
+        : [];
 
       setSelectedChain(chainParam);
       setPortfolioConfig({
@@ -42,9 +47,8 @@ export default function PortfolioForm() {
     }
   }, []);
 
-  const updateChainConfig = (chainName: string, changes: PortfolioConfig) => {
+  const updatePortfolioConfig = (chainName: string, changes: RemoteConfig) => {
     setPortfolioConfig((prev: PortfolioConfig) => ({
-      ...prev,
       [chainName]: {
         ...prev[chainName],
         ...changes,
@@ -66,24 +70,29 @@ export default function PortfolioForm() {
     history.replaceState(null, '', url.href);
   };
 
-  const handleFrequency = (newFreq: FrequencyValues) => {
+  const handleFrequency = (newFreq: PollingFrequency) => {
     if (!selectedChain) {
       showError({ content: 'Please select a chain' });
       return;
     }
-    updateChainConfig(selectedChain, { freq: newFreq });
+    updatePortfolioConfig(selectedChain, { freq: newFreq });
     updateUrlParams({ freq: newFreq });
   };
 
-  const handleToggle = (key: string, value: string) => {
+  const handleToggle = (
+    key: Exclude<keyof RemoteConfig, 'freq'>,
+    value: string,
+  ) => {
     if (!selectedChain) {
       showError({ content: 'Please select a chain' });
       return;
     }
-    const isChecked = config[key].length > 0;
-    const newValue = isChecked ? [] : [value];
 
-    updateChainConfig(selectedChain, {
+    const currentValues = config[key] ?? [];
+    const isToggledOn = currentValues.length > 0;
+    const newValue = isToggledOn ? [] : [value];
+
+    updatePortfolioConfig(selectedChain, {
       [key]: newValue,
     });
 
@@ -97,7 +106,7 @@ export default function PortfolioForm() {
 
     updateUrlParams({ chain, freq: null, onRewards: null, onReceipt: null });
     setPortfolioConfig({
-      [chain]: { freq: '', onReceipt: [], onRewards: [] },
+      [chain]: { freq: undefined, onReceipt: [], onRewards: [] },
     });
   };
 

@@ -30,7 +30,6 @@ harden(PollingFrequency);
 export const ReceiptAction = /** @type {const} */ ({
   stake: 'stake',
 });
-harden(PollingFrequency);
 
 /**
  * @enum {(typeof RewardsAction)[keyof typeof RewardsAction]}
@@ -38,7 +37,6 @@ harden(PollingFrequency);
 export const RewardsAction = /** @type {const} */ ({
   restake: 'restake',
 });
-harden(PollingFrequency);
 
 /**
  * @typedef {{

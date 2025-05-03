@@ -19,7 +19,7 @@
 
   // ESLint config
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+    "source.fixAll.eslint": "explicit"
   },
   "eslint.rules.customizations": [
     // Leave this to Prettier itself

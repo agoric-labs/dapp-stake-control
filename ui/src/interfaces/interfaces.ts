@@ -22,7 +22,5 @@ export type ToastMessageOptions = {
   duration?: number;
 };
 
-export type FrequencyValues = 'daily' | 'weekly';
-
 export const chainOptions = ['Osmosis', 'Noble'] as const;
 export type SupportedChain = (typeof chainOptions)[number];
