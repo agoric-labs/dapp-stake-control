@@ -17,14 +17,14 @@ import { preparePollingKit } from './polling-kit.js';
 
 /**
  * @import {MapStore} from '@agoric/store';
- * @import {Remote, Vow} from '@agoric/vow';
+ * @import {Remote} from '@agoric/vow';
  * @import {Zone} from '@agoric/zone';
  * @import {OrchestrationPowers, OrchestrationTools} from '@agoric/orchestration/src/utils/start-helper.js';
  * @import {ChainInfo, Denom, DenomDetail} from '@agoric/orchestration';
  * @import {Marshaller, StorageNode} from '@agoric/internal/src/lib-chainStorage.js';
  * @import { ZCF } from '@agoric/zoe/src/zoeService/zoe.js';
- * @import {Amount, Ratio} from '@agoric/ertp';
  * @import {PollingKit} from './polling-kit.js';
+ * @import {StkCTerms} from './typeGuards.js'
  */
 
 const trace = makeTracer('StkC');
@@ -41,13 +41,6 @@ const FREQ_INTERVALS = {
   daily: 24n * HR,
   weekly: 7n * 24n * HR,
 };
-
-/**
- * @typedef {{
- *   portfolioFee: Amount;
- *   commission?: Ratio,
- * }} StkCTerms
- */
 
 /**
  * Orchestration contract to be wrapped by withOrchestration for Zoe
