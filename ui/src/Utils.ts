@@ -21,10 +21,13 @@ export const showSuccess = ({
   });
 };
 
-export const showError = ({ content, duration }: ToastMessageOptions): void => {
+export const showError = ({
+  content,
+  duration = 3000,
+}: ToastMessageOptions): void => {
   toast.error(content, {
     position: 'top-right',
-    // autoClose: duration,
+    autoClose: duration,
   });
 };
 
