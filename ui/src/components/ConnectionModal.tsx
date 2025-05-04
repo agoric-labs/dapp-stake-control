@@ -1,16 +1,11 @@
 import { useState } from 'react';
 import './ConnectionModal.css';
 import { useAppStore } from '../state.js';
-import {
-  connectWallet,
-  createWatcherHandlers,
-  setupWatcher,
-  showSuccess,
-} from '../Utils.js';
+import { connectWallet, setupWatcher, showSuccess } from '../Utils.js';
 import { Network, networkConfigs } from '../config.js';
 
 export const ConnectionModal = () => {
-  const { network, watcher, wallet } = useAppStore.getState();
+  const { network, wallet } = useAppStore.getState();
   const [showModal, setShowModal] = useState(false);
   const [selectedNetwork, setSelectedNetwork] = useState<Network>(network);
 
