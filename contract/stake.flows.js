@@ -7,12 +7,14 @@ const trace = makeTracer('flows');
 const { entries } = Object;
 
 /**
+ * @import {MapStore} from '@agoric/store';
  * @import {Orchestrator, OrchestrationFlow} from '@agoric/orchestration';
  * @import { ZCFSeat } from '@agoric/zoe/src/zoeService/zoe.js';
  * @import {StorageNode} from '@agoric/internal/src/lib-chainStorage.js';
  * @import {MakeStakeManagementKit} from './staking-kit.js';
- * @import {PortfolioConfig} from './typeGuards.js'
+ * @import {PortfolioConfig, PollingFrequency} from './typeGuards.js'
  * @import {PortfolioEvent} from './types.js';
+ * @import {PollingKit} from './polling-kit.js';
  */
 
 /**
@@ -21,13 +23,14 @@ const { entries } = Object;
  * @param {{
  *   makeStakeManagementKit: MakeStakeManagementKit;
  *   makeStorageKit: (id: bigint) => Promise<{node:StorageNode,path:string}>;
+ *   stores: MapStore<PollingFrequency, PollingKit['store']>;
  * }} ctx
  * @param {ZCFSeat} seat
  * @param {PortfolioConfig} offerArgs
  */
 export const makeStakingPortfolio = async (
   orch,
-  { makeStakeManagementKit, makeStorageKit },
+  { makeStakeManagementKit, makeStorageKit, stores },
   seat,
   offerArgs,
 ) => {
@@ -64,6 +67,10 @@ export const makeStakingPortfolio = async (
     invitationMakers: stakeManagementKit.invitationMakers,
     publicSubscribers,
   });
+
+  if (plan.freq) {
+    stores.get(plan.freq).addItem(stakeManagementKit.polling);
+  }
 
   /** @type {PortfolioEvent} */
   const e0 = {

@@ -10,10 +10,13 @@ import { prepareStakeManagementKit } from './staking-kit.js';
 import {
   customTermsShape,
   makeProposalShapes,
+  PollingFrequency,
   privateArgsShape,
 } from './typeGuards.js';
+import { preparePollingKit } from './polling-kit.js';
 
 /**
+ * @import {MapStore} from '@agoric/store';
  * @import {Remote, Vow} from '@agoric/vow';
  * @import {Zone} from '@agoric/zone';
  * @import {OrchestrationPowers, OrchestrationTools} from '@agoric/orchestration/src/utils/start-helper.js';
@@ -21,15 +24,23 @@ import {
  * @import {Marshaller, StorageNode} from '@agoric/internal/src/lib-chainStorage.js';
  * @import { ZCF } from '@agoric/zoe/src/zoeService/zoe.js';
  * @import {Amount, Ratio} from '@agoric/ertp';
+ * @import {PollingKit} from './polling-kit.js';
  */
 
 const trace = makeTracer('StkC');
+const { values } = Object;
 
 export const meta = {
   customTermsShape,
   privateArgsShape,
 };
 harden(meta);
+
+const HR = 1n; // TODO: 60n * 60n
+const FREQ_INTERVALS = {
+  daily: 24n * HR,
+  weekly: 7n * 24n * HR,
+};
 
 /**
  * @typedef {{
@@ -84,9 +95,26 @@ export const contract = async (
       return { node, path };
     });
 
+  const zoneP = zone.subZone('polling');
+  const makePollingKit = preparePollingKit(zoneP, privateArgs.timerService);
+  /** @type {MapStore<PollingFrequency, PollingKit>} */
+  const byFreq = zoneP.mapStore('byFreq');
+  byFreq.addAll(
+    values(PollingFrequency).map((freq) => [
+      freq,
+      makePollingKit(FREQ_INTERVALS[freq]),
+    ]),
+  );
+  /** @type {MapStore<PollingFrequency, PollingKit['store']>} */
+  const pollStores = zoneP.mapStore('storeByFreq');
+  for (const [freq, kit] of byFreq.entries()) {
+    pollStores.init(freq, kit.store);
+  }
+
   const { makeStakingPortfolio } = orchestrateAll(stakingFlows, {
     makeStakeManagementKit,
     makeStorageKit,
+    stores: pollStores,
   });
 
   const proposalShapes = makeProposalShapes(terms);
