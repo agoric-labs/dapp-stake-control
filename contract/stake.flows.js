@@ -1,7 +1,7 @@
 // @ts-check
 import { makeTracer, mustMatch } from '@agoric/internal';
 import { Fail } from '@endo/errors';
-import { PortfolioConfigShape } from './typeGuards.js';
+import { planProps, PortfolioConfigShape } from './typeGuards.js';
 
 const trace = makeTracer('flows');
 const { entries } = Object;
@@ -70,8 +70,7 @@ export const makeStakingPortfolio = async (
     type: 'opened',
     // TODO: stakeManagementKit.foo.getRetainerBalance()
     retainerBalance: seat.getProposal().give.Retainer,
-    staking: (plan.onReceipt || []).includes('stake'),
-    restaking: (plan.onRewards || []).includes('restake'),
+    ...planProps(plan),
   };
   stakeManagementKit.storing.logEvent(e0);
   return result;
