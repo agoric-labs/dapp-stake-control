@@ -1,15 +1,12 @@
-import { useEffect } from 'react';
 import './App.css';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
 import { useAppStore } from './state';
 import { ContentContainer } from './components/ContentContainer';
 import { TopBar } from './components/Topbar';
-import { setupWatcher } from './Utils';
-import { networkConfigs } from './config';
 
-function App() {
-  const { network } = useAppStore((state) => ({
+const App = () => {
+  useAppStore((state) => ({
     wallet: state.wallet,
     loading: state.loading,
     error: state.error,
@@ -19,11 +16,6 @@ function App() {
     isNetworkChanging: state.isNetworkChanging,
     watcher: state.watcher,
   }));
-
-  useEffect(() => {
-    const { api, chainId } = networkConfigs[network];
-    setupWatcher({ api, chainId });
-  }, []);
 
   return (
     <>
@@ -46,6 +38,6 @@ function App() {
       </div>
     </>
   );
-}
+};
 
 export default App;
