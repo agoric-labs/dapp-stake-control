@@ -88,6 +88,16 @@ export const protoMsgMocks = {
     msg: buildTxPacketString([MsgDelegate.toProtoMsg(delegation)]),
     ack: buildMsgResponseString(MsgDelegateResponse, {}),
   },
+  delegate123osmo: {
+    msg: buildTxPacketString([
+      MsgDelegate.toProtoMsg({
+        delegatorAddress: 'osmosis1test',
+        amount: { amount: '123', denom: 'uosmo' },
+        validatorAddress: 'osmovaloper1TODODO',
+      }),
+    ]),
+    ack: buildMsgResponseString(MsgDelegateResponse, {}),
+  },
   undelegate: {
     msg: buildTxPacketString([MsgUndelegate.toProtoMsg(delegation)]),
     ack: buildMsgResponseString(MsgUndelegateResponse, {
@@ -117,6 +127,17 @@ export const protoMsgMocks = {
     ]),
     ack: buildQueryResponseString(QueryBalanceResponse, {
       balance: { amount: '0', denom: 'uatom' },
+    }),
+  },
+  qb2: {
+    msg: buildQueryPacketString([
+      QueryBalanceRequest.toProtoMsg({
+        address: 'osmosis1test',
+        denom: 'uosmo',
+      }),
+    ]),
+    ack: buildQueryResponseString(QueryBalanceResponse, {
+      balance: { amount: '123', denom: 'uosmo' },
     }),
   },
   bankSend: {
