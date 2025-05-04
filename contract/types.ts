@@ -63,9 +63,9 @@ export type PortfolioEvent = {
       quantity: bigint;
     }
   | {
-      // indicates that the contract found unclaimed
-      // rewards and initiated a claim.
-      // when the rewards arrive, they may be
+      // indicates that the contract found and withdrew
+      // rewards.
+      // they may be
       // automatically restaked.
       type: 'claim';
       denom: string;
