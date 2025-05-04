@@ -44,8 +44,27 @@ export const chainInfo = JSON.stringify({
           version: 'ics20-1',
         },
       },
+      axelar: {
+        id: 'connection-0',
+        client_id: '07-tendermint-0',
+        counterparty: {
+          client_id: '07-tendermint-0',
+          connection_id: 'connection-0',
+        },
+        state: 3,
+        transferChannel: {
+          channelId: 'channel-0',
+          portId: 'transfer',
+          counterPartyChannelId: 'channel-0',
+          counterPartyPortId: 'transfer',
+          ordering: 0,
+          state: 3,
+          version: 'ics20-1',
+        },
+      },
     },
   },
+
   osmosis: {
     bech32Prefix: 'osmo',
     chainId: osmosisData.chainId,
@@ -66,6 +85,35 @@ export const chainInfo = JSON.stringify({
           channelId: osmosisData.channelId,
           portId: 'transfer',
           counterPartyChannelId: agoricData.channelId,
+          counterPartyPortId: 'transfer',
+          ordering: 0,
+          state: 3,
+          version: 'ics20-1',
+        },
+      },
+    },
+  },
+
+  axelar: {
+    bech32Prefix: 'axelar',
+    chainId: 'axelar',
+    icqEnabled: true,
+    namespace: 'cosmos',
+    reference: 'axelar',
+    stakingTokens: [{ denom: 'uaxl' }],
+    connections: {
+      agoriclocal: {
+        id: 'connection-0',
+        client_id: '07-tendermint-0',
+        counterparty: {
+          client_id: '07-tendermint-0',
+          connection_id: 'connection-0',
+        },
+        state: 3,
+        transferChannel: {
+          channelId: 'channel-0',
+          portId: 'transfer',
+          counterPartyChannelId: 'channel-0',
           counterPartyPortId: 'transfer',
           ordering: 0,
           state: 3,
@@ -108,6 +156,15 @@ export const assetInfo = JSON.stringify([
       baseDenom: 'uosmo',
       baseName: 'osmosis',
       chainName: 'osmosis',
+    },
+  ],
+  [
+    'ibc/2CC0B1B7A981ACC74854717F221008484603BB8360E81B262411B0D830EDE9B0',
+    {
+      baseDenom: 'uaxl',
+      baseName: 'axelar',
+      chainName: 'agoric',
+      brandKey: 'AXL',
     },
   ],
 ]);
