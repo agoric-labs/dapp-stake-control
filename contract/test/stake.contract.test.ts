@@ -7,9 +7,11 @@ import * as contractExports from '../stake.contract.js';
 import { commonSetup } from './fusdc-tools/supports.js';
 import { makeCustomer, makeWallet } from './stake-actors.js';
 import { startContract } from './supports.js';
+import { eventLoopIteration } from '@agoric/internal/src/testing-utils.js';
 
 test('onboarding: create staking portfolio', async (t) => {
   const common = await commonSetup(t);
+  common.mocks.ibcBridge.setAddressPrefix('osmosis');
   const BLD = withAmountUtils(makeIssuerKit('BLD'));
   const customTerms: StkCTerms = harden({
     portfolioFee: BLD.make(20n),
@@ -37,6 +39,7 @@ test('onboarding: create staking portfolio', async (t) => {
   t.log(result.publicSubscribers);
   const { storagePath } = result.publicSubscribers.portfolio;
   t.is(storagePath, 'fun.portfolios.portfolio123');
+  await eventLoopIteration();
 
   const { storage } = common.bootstrap;
   const events = storage
@@ -50,6 +53,17 @@ test('onboarding: create staking portfolio', async (t) => {
       retainerBalance: { brand: {}, value: '50000000' },
       staking: true,
       type: 'opened',
+    },
+    {
+      amount: '123',
+      denom: 'uosmo',
+      restaking: true,
+      retainerBalance: {
+        brand: 'TODO',
+        value: '0',
+      },
+      staking: true,
+      type: 'deposit',
     },
   ]);
 });
