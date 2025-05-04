@@ -1,7 +1,7 @@
 // @ts-check
 import { makeTracer } from '@agoric/internal';
 import { TimestampRecordShape } from '@agoric/time/src/typeGuards.js';
-import { DenomShape } from '@agoric/orchestration';
+import { CosmosChainAddressShape, DenomShape } from '@agoric/orchestration';
 import { M, mustMatch } from '@endo/patterns';
 import {
   planProps,
@@ -19,9 +19,9 @@ const trace = makeTracer('StkCTap');
  * @import {TypedPattern} from '@agoric/internal';
  * @import {TimestampRecord} from '@agoric/time/src/types';
  * @import {Remote, Vow, VowTools} from '@agoric/vow';
- * @import {HostInterface} from '@agoric/async-flow';
+ * @import {HostInterface, } from '@agoric/async-flow';
  * @import {Zone} from '@agoric/zone';
- * @import {Denom, OrchestrationAccount} from '@agoric/orchestration';
+ * @import {Denom, OrchestrationAccount, CosmosValidatorAddress, StakingAccountActions, StakingAccountQueries} from '@agoric/orchestration';
  * @import { ZCF } from '@agoric/zoe/src/zoeService/zoe.js';
  * @import {StorageNode} from '@agoric/internal/src/lib-chainStorage.js';
  * @import {RemoteConfig} from './typeGuards.js';
@@ -30,11 +30,17 @@ const trace = makeTracer('StkCTap');
 
 /**
  * @typedef {{
- *   remoteAccount: HostInterface<OrchestrationAccount<any>>;
+ *   remoteAccount: OrchestrationAccount<any> & StakingAccountActions & StakingAccountQueries;
  *   stakePlan: RemoteConfig;
+ *   validatorAddress: CosmosValidatorAddress;
  *   remoteDenom: Denom;
  *   storageNode: Remote<StorageNode>;
  *   storagePath: string;
+ * }} StakingInit
+ */
+/**
+ * @typedef {StakingInit & {
+ *   remoteAccount: HostInterface<StakingInit['remoteAccount']>;
  *   balance: NatValue
  * }} StakingTapState
  */
@@ -46,6 +52,8 @@ const StakingKitStateShape = M.splitRecord(
   {
     remoteAccount: M.remotable('OrchestrationAccount'),
     stakePlan: RemoteConfigShape,
+    // XXX move validator addr into stakePlan?
+    validatorAddress: CosmosChainAddressShape,
     remoteDenom: DenomShape,
     storageNode: M.remotable('StorageNode'),
     storagePath: M.string(),
@@ -76,6 +84,9 @@ export const prepareStakeManagementKit = (zone, { zcf, vowTools }) => {
       invitationMakers: InvitationMakerI,
       polling: M.interface('polling', {
         wake: M.call(TimestampRecordShape).returns(M.promise()),
+      }),
+      internal: M.interface('internal', {
+        onReceive: M.callWhen(M.nat()).returns(),
       }),
     },
     /**
@@ -114,6 +125,35 @@ export const prepareStakeManagementKit = (zone, { zcf, vowTools }) => {
       invitationMakers: {
         // TODO: invitation to wind down the portfolio?
       },
+      internal: {
+        /** @param {bigint} value */
+        async onReceive(value) {
+          const { storing } = this.facets;
+          const { remoteAccount, remoteDenom, balance, stakePlan } = this.state;
+
+          storing.logEvent({
+            type: 'deposit',
+            amount: value,
+            denom: remoteDenom,
+            ...planProps(stakePlan),
+            // @ts-expect-error TODO: track retainerBalance
+            retainerBalance: { brand: 'TODO', value: 0n },
+          });
+
+          const stakeAmount = value - balance;
+          this.state.balance = value;
+          if ((stakePlan.onReceipt || []).includes('stake')) {
+            const { validatorAddress } = this.state;
+            // XXX not prompt!!!
+            await vowTools.when(
+              remoteAccount.delegate(validatorAddress, {
+                denom: remoteDenom,
+                value: BigInt(stakeAmount),
+              }),
+            );
+          }
+        },
+      },
       polling: {
         /** @param {TimestampRecord} ts */
         async wake(ts) {
@@ -125,15 +165,8 @@ export const prepareStakeManagementKit = (zone, { zcf, vowTools }) => {
           );
           actual.value >= balance ||
             Fail`who took tokens out??? ${actual.value} < ${balance}`;
-          if (actual.value > balance) {
-            const { storing } = this.facets;
-            storing.logEvent({
-              type: 'deposit',
-              amount: actual.value,
-              denom: remoteDenom,
-              ...planProps(stakePlan),
-              retainerBalance: { brand: 'TODO', value: 0n },
-            });
+          if (actual.value > balance && stakePlan.onReceipt) {
+            this.facets.internal.onReceive(actual.value);
           }
         },
       },
@@ -151,5 +184,5 @@ export const prepareStakeManagementKit = (zone, { zcf, vowTools }) => {
   );
 };
 
-/** @typedef {ReturnType<typeof prepareStakeManagementKit>} MakeStakeManagementKit */
-/** @typedef {ReturnType<MakeStakeManagementKit>} StakeManagementKit */
+/** @typedef {ReturnType<ReturnType<typeof prepareStakeManagementKit>>} StakeManagementKit */
+/** @typedef {(init: StakingInit) => StakeManagementKit} MakeStakeManagementKit */

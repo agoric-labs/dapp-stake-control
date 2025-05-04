@@ -8,7 +8,7 @@ const { entries } = Object;
 
 /**
  * @import {MapStore} from '@agoric/store';
- * @import {Orchestrator, OrchestrationFlow} from '@agoric/orchestration';
+ * @import {Orchestrator, OrchestrationFlow, OrchestrationAccount, StakingAccountActions, StakingAccountQueries, CosmosChainInfo} from '@agoric/orchestration';
  * @import { ZCFSeat } from '@agoric/zoe/src/zoeService/zoe.js';
  * @import {StorageNode} from '@agoric/internal/src/lib-chainStorage.js';
  * @import {MakeStakeManagementKit} from './staking-kit.js';
@@ -42,11 +42,17 @@ export const makeStakingPortfolio = async (
 
   const remoteChain = await orch.getChain(chainName);
 
-  const { stakingTokens } = await remoteChain.getChainInfo();
-  const remoteDenom = stakingTokens[0].denom;
-  remoteDenom || Fail`${chainName} does not have stakingTokens in config`;
+  /** @type {CosmosChainInfo} */
+  const { namespace, chainId, stakingTokens, bech32Prefix } =
+    await remoteChain.getChainInfo();
+  namespace === 'cosmos' || Fail`expected cosmos; got ${namespace}`;
+  if (!(stakingTokens && stakingTokens.length > 0))
+    throw assert.error(`${chainName} does not have stakingTokens in config`);
+  const [{ denom: remoteDenom }] = stakingTokens;
 
   trace('Creating Remote account...');
+  /** @type {OrchestrationAccount<any> & StakingAccountActions & StakingAccountQueries} */
+  // @ts-expect-error
   const remoteAccount = await remoteChain.makeAccount();
   trace('Remote account created successfully');
 
@@ -56,6 +62,13 @@ export const makeStakingPortfolio = async (
   const stakeManagementKit = makeStakeManagementKit({
     remoteAccount,
     stakePlan: plan,
+    // TODO: get validatorAddress from user or from build-time config
+    validatorAddress: {
+      chainId,
+      // @ts-expect-error XXX TODO
+      value: `${bech32Prefix}valoper1TODODO`,
+      encoding: 'bech32',
+    },
     remoteDenom,
     storageNode: node,
     storagePath: path,
