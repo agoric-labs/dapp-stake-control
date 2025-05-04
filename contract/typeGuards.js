@@ -9,10 +9,16 @@ import { M } from '@endo/patterns';
 
 /**
  * @import {TypedPattern} from '@agoric/internal';
- * @import {StkCTerms} from './stake.contract';
- * @import {Amount, Brand, NatValue} from '@agoric/ertp';
+ * @import {Amount, Ratio,Brand, NatValue} from '@agoric/ertp';
  * @import {Pattern} from '@endo/patterns';
  * @import {PortfolioEvent} from './types';
+ */
+
+/**
+ * @typedef {{
+ *   portfolioFee: Amount;
+ *   commission?: Ratio,
+ * }} StkCTerms
  */
 
 /**
@@ -30,7 +36,6 @@ harden(PollingFrequency);
 export const ReceiptAction = /** @type {const} */ ({
   stake: 'stake',
 });
-harden(PollingFrequency);
 
 /**
  * @enum {(typeof RewardsAction)[keyof typeof RewardsAction]}
@@ -38,7 +43,6 @@ harden(PollingFrequency);
 export const RewardsAction = /** @type {const} */ ({
   restake: 'restake',
 });
-harden(PollingFrequency);
 
 /**
  * @typedef {{

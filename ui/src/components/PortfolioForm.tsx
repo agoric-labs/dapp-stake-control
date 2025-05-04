@@ -4,29 +4,37 @@ import { toast } from 'react-toastify';
 import { TOAST_DURATION } from '../config';
 import { useAppStore } from '../state';
 import { showError } from '../Utils';
-import { FrequencyValues, OfferArgsPortfolio } from '../interfaces/interfaces';
+import { chainOptions, SupportedChain } from '../interfaces/interfaces';
 import { type OfferSpec } from '@agoric/smart-wallet/src/offers.js';
-
-const chainOptions = ['Osmosis', 'Noble'];
+import type {
+  PortfolioConfig,
+  PollingFrequency,
+  ReceiptAction,
+  RewardsAction,
+  RemoteConfig,
+} from 'staking-contract';
 
 export default function PortfolioForm() {
-  const [selectedChain, setSelectedChain] = useState('');
-  const [portfolioConfig, setPortfolioConfig] = useState<OfferArgsPortfolio>(
-    {},
-  );
+  const [selectedChain, setSelectedChain] = useState<SupportedChain | ''>('');
+  const [portfolioConfig, setPortfolioConfig] = useState<PortfolioConfig>({});
 
   const { wallet, contractInstance, brands } = useAppStore.getState();
 
   // Initialize state from URL params on mount
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    const chainParam = searchParams.get('chain');
+    const chainParam = searchParams.get('chain') as SupportedChain | null;
     const validChains = chainOptions.map((c) => c.toLowerCase());
 
     if (chainParam && validChains.includes(chainParam)) {
-      const freq = searchParams.get('freq') || '';
-      const onReceipt = searchParams.has('onReceipt') ? ['stake'] : [];
-      const onRewards = searchParams.has('onRewards') ? ['restake'] : [];
+      const freq = (searchParams.get('freq') as PollingFrequency) || '';
+
+      const onReceipt = searchParams.has('onReceipt')
+        ? (['stake'] as ReceiptAction[])
+        : [];
+      const onRewards = searchParams.has('onRewards')
+        ? (['restake'] as RewardsAction[])
+        : [];
 
       setSelectedChain(chainParam);
       setPortfolioConfig({
@@ -39,12 +47,8 @@ export default function PortfolioForm() {
     }
   }, []);
 
-  const updateChainConfig = (
-    chainName: string,
-    changes: OfferArgsPortfolio,
-  ) => {
-    setPortfolioConfig((prev: OfferArgsPortfolio) => ({
-      ...prev,
+  const updatePortfolioConfig = (chainName: string, changes: RemoteConfig) => {
+    setPortfolioConfig((prev: PortfolioConfig) => ({
       [chainName]: {
         ...prev[chainName],
         ...changes,
@@ -66,16 +70,29 @@ export default function PortfolioForm() {
     history.replaceState(null, '', url.href);
   };
 
-  const handleFrequency = (newFreq: FrequencyValues) => {
-    updateChainConfig(selectedChain, { freq: newFreq });
+  const handleFrequency = (newFreq: PollingFrequency) => {
+    if (!selectedChain) {
+      showError({ content: 'Please select a chain' });
+      return;
+    }
+    updatePortfolioConfig(selectedChain, { freq: newFreq });
     updateUrlParams({ freq: newFreq });
   };
 
-  const handleToggle = (key: string, value: string) => {
-    const isChecked = config[key].length > 0;
-    const newValue = isChecked ? [] : [value];
+  const handleToggle = (
+    key: Exclude<keyof RemoteConfig, 'freq'>,
+    value: string,
+  ) => {
+    if (!selectedChain) {
+      showError({ content: 'Please select a chain' });
+      return;
+    }
 
-    updateChainConfig(selectedChain, {
+    const currentValues = config[key] ?? [];
+    const isToggledOn = currentValues.length > 0;
+    const newValue = isToggledOn ? [] : [value];
+
+    updatePortfolioConfig(selectedChain, {
       [key]: newValue,
     });
 
@@ -84,12 +101,12 @@ export default function PortfolioForm() {
   };
 
   const handleChainUpdate = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const chain = e.target.value;
+    const chain = e.target.value as SupportedChain;
     setSelectedChain(chain);
 
     updateUrlParams({ chain, freq: null, onRewards: null, onReceipt: null });
     setPortfolioConfig({
-      [chain]: { freq: '', onReceipt: [], onRewards: [] },
+      [chain]: { freq: undefined, onReceipt: [], onRewards: [] },
     });
   };
 
@@ -120,7 +137,7 @@ export default function PortfolioForm() {
         Retainer: { brand: requiredBrand, value: 50n * 1000_000n },
       };
 
-      const offerArgs: OfferArgsPortfolio = {
+      const offerArgs: PortfolioConfig = {
         [selectedChain]: config,
       };
 
@@ -188,52 +205,45 @@ export default function PortfolioForm() {
         ))}
       </select>
 
-      {selectedChain && (
-        <div className="dark-card">
-          <h3>
-            {selectedChain.charAt(0).toUpperCase() + selectedChain.slice(1)}{' '}
-            Options
-          </h3>
-
-          <div className="setting-row">
-            <label>Polling Frequency:</label>
-          </div>
-          <div className="button-group">
-            <button
-              type="button"
-              className={config.freq === 'daily' ? 'active' : ''}
-              onClick={() => handleFrequency('daily')}
-            >
-              Daily
-            </button>
-            <button
-              type="button"
-              className={config.freq === 'weekly' ? 'active' : ''}
-              onClick={() => handleFrequency('weekly')}
-            >
-              Weekly
-            </button>
-          </div>
-
-          <label className="setting-row">
-            <p>Stake when tokens arrive:</p>
-            <input
-              type="checkbox"
-              checked={!!config.onReceipt.length}
-              onClick={() => handleToggle('onReceipt', 'stake')}
-            />
-          </label>
-
-          <label className="setting-row">
-            <p>Restake when rewards accrue:</p>
-            <input
-              type="checkbox"
-              checked={!!config.onRewards.length}
-              onClick={() => handleToggle('onRewards', 'restake')}
-            />
-          </label>
+      <div className="dark-card">
+        <div className="setting-row">
+          <label>Polling Frequency:</label>
         </div>
-      )}
+        <div className="button-group">
+          <button
+            type="button"
+            className={config.freq === 'daily' ? 'active' : ''}
+            onClick={() => handleFrequency('daily')}
+          >
+            Daily
+          </button>
+          <button
+            type="button"
+            className={config.freq === 'weekly' ? 'active' : ''}
+            onClick={() => handleFrequency('weekly')}
+          >
+            Weekly
+          </button>
+        </div>
+
+        <label className="setting-row">
+          <p>Stake when tokens arrive:</p>
+          <input
+            type="checkbox"
+            checked={!!config.onReceipt?.length}
+            onClick={() => handleToggle('onReceipt', 'stake')}
+          />
+        </label>
+
+        <label className="setting-row">
+          <p>Restake when rewards accrue:</p>
+          <input
+            type="checkbox"
+            checked={!!config.onRewards?.length}
+            onClick={() => handleToggle('onRewards', 'restake')}
+          />
+        </label>
+      </div>
 
       {selectedChain && (
         <div className="submit-wrapper">
