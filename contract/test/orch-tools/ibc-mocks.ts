@@ -33,6 +33,10 @@ import {
   createMockAckMap,
 } from '@agoric/orchestration/tools/ibc-mocks.js';
 import { leftPadEthAddressTo32Bytes } from '@agoric/orchestration/src/utils/address.js';
+import {
+  QueryDelegationRewardsRequest,
+  QueryDelegationRewardsResponse,
+} from '@agoric/cosmic-proto/cosmos/distribution/v1beta1/query.js';
 
 /**
  * TODO: provide mappings to cosmos error codes (and module specific error codes)
@@ -98,6 +102,16 @@ export const protoMsgMocks = {
     ]),
     ack: buildMsgResponseString(MsgDelegateResponse, {}),
   },
+  delegate25osmo: {
+    msg: buildTxPacketString([
+      MsgDelegate.toProtoMsg({
+        delegatorAddress: 'osmosis1test',
+        amount: { amount: '25', denom: 'uosmo' },
+        validatorAddress: 'osmovaloper1TODODO',
+      }),
+    ]),
+    ack: buildMsgResponseString(MsgDelegateResponse, {}),
+  },
   undelegate: {
     msg: buildTxPacketString([MsgUndelegate.toProtoMsg(delegation)]),
     ack: buildMsgResponseString(MsgUndelegateResponse, {
@@ -116,6 +130,17 @@ export const protoMsgMocks = {
     ]),
     ack: buildMsgResponseString(MsgWithdrawDelegatorRewardResponse, {
       amount: [{ amount: '1', denom: 'uatom' }],
+    }),
+  },
+  withdrawRewardOsmo: {
+    msg: buildTxPacketString([
+      MsgWithdrawDelegatorReward.toProtoMsg({
+        delegatorAddress: 'osmosis1test',
+        validatorAddress: 'osmovaloper1TODODO',
+      }),
+    ]),
+    ack: buildMsgResponseString(MsgWithdrawDelegatorRewardResponse, {
+      amount: [{ amount: '25', denom: 'uosmo' }],
     }),
   },
   queryBalance: {
@@ -138,6 +163,17 @@ export const protoMsgMocks = {
     ]),
     ack: buildQueryResponseString(QueryBalanceResponse, {
       balance: { amount: '123', denom: 'uosmo' },
+    }),
+  },
+  queryDelegationRewards: {
+    msg: buildQueryPacketString([
+      QueryDelegationRewardsRequest.toProtoMsg({
+        delegatorAddress: 'osmosis1test',
+        validatorAddress: 'osmovaloper1TODODO',
+      }),
+    ]),
+    ack: buildQueryResponseString(QueryDelegationRewardsResponse, {
+      rewards: [{ denom: 'uosmo', amount: '24' }],
     }),
   },
   bankSend: {

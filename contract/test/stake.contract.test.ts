@@ -65,5 +65,42 @@ test('onboarding: create staking portfolio', async (t) => {
       staking: true,
       type: 'deposit',
     },
+    {
+      balance: '0',
+      denom: 'uosmo',
+      quantity: '123',
+      restaking: true,
+      retainerBalance: {
+        brand: 'TODO',
+        value: '0',
+      },
+      staking: true,
+      type: 'stake',
+      validator: 'osmovaloper1TODODO',
+    },
+    {
+      balance: '148',
+      denom: 'uosmo',
+      restaking: true,
+      retainerBalance: {
+        brand: 'TODO',
+        value: '0',
+      },
+      staking: true,
+      type: 'claim',
+    },
+    {
+      balance: '123',
+      denom: 'uosmo',
+      quantity: '25',
+      restaking: true,
+      retainerBalance: {
+        brand: 'TODO',
+        value: '0',
+      },
+      staking: true,
+      type: 'stake',
+      validator: 'osmovaloper1TODODO',
+    },
   ]);
 });

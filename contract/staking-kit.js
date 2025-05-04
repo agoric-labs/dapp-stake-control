@@ -1,7 +1,11 @@
 // @ts-check
 import { makeTracer } from '@agoric/internal';
 import { TimestampRecordShape } from '@agoric/time/src/typeGuards.js';
-import { CosmosChainAddressShape, DenomShape } from '@agoric/orchestration';
+import {
+  CosmosChainAddressShape,
+  DenomAmountShape,
+  DenomShape,
+} from '@agoric/orchestration';
 import { M, mustMatch } from '@endo/patterns';
 import {
   planProps,
@@ -15,13 +19,13 @@ import { Fail } from '@endo/errors';
 const trace = makeTracer('StkCTap');
 
 /**
- * @import {NatValue} from '@agoric/ertp';
+ * @import {Amount, NatValue} from '@agoric/ertp';
  * @import {TypedPattern} from '@agoric/internal';
  * @import {TimestampRecord} from '@agoric/time/src/types';
  * @import {Remote, Vow, VowTools} from '@agoric/vow';
  * @import {HostInterface, } from '@agoric/async-flow';
  * @import {Zone} from '@agoric/zone';
- * @import {Denom, OrchestrationAccount, CosmosValidatorAddress, StakingAccountActions, StakingAccountQueries} from '@agoric/orchestration';
+ * @import {Denom, DenomAmount, OrchestrationAccount, CosmosValidatorAddress, StakingAccountActions, StakingAccountQueries} from '@agoric/orchestration';
  * @import { ZCF } from '@agoric/zoe/src/zoeService/zoe.js';
  * @import {StorageNode} from '@agoric/internal/src/lib-chainStorage.js';
  * @import {RemoteConfig} from './typeGuards.js';
@@ -64,6 +68,9 @@ harden(StakingKitStateShape);
 
 const bigintReplacer = (p, v) => (typeof v === 'bigint' ? `${v}` : v);
 
+/** @type {Amount<'nat'>} */
+// @ts-expect-error TODO: track retainerBalance
+const retainerBalance = { brand: 'TODO', value: 0n };
 /**
  * @param {Zone} zone
  * @param {{
@@ -87,6 +94,8 @@ export const prepareStakeManagementKit = (zone, { zcf, vowTools }) => {
       }),
       internal: M.interface('internal', {
         onReceive: M.callWhen(M.nat()).returns(),
+        onRewards: M.callWhen(M.arrayOf(DenomAmountShape)).returns(),
+        stake: M.callWhen(M.nat()).returns(),
       }),
     },
     /**
@@ -126,31 +135,87 @@ export const prepareStakeManagementKit = (zone, { zcf, vowTools }) => {
         // TODO: invitation to wind down the portfolio?
       },
       internal: {
-        /** @param {bigint} value */
-        async onReceive(value) {
-          const { storing } = this.facets;
-          const { remoteAccount, remoteDenom, balance, stakePlan } = this.state;
+        /** @param {bigint} balance */
+        async onReceive(balance) {
+          const { storing, internal } = this.facets;
+          const {
+            remoteDenom: denom,
+            balance: balancePre,
+            stakePlan,
+          } = this.state;
+          Object.assign(this.state, { balance });
 
+          const stakeAmount = balance - balancePre;
           storing.logEvent({
             type: 'deposit',
-            amount: value,
-            denom: remoteDenom,
+            amount: stakeAmount,
+            denom,
             ...planProps(stakePlan),
-            // @ts-expect-error TODO: track retainerBalance
-            retainerBalance: { brand: 'TODO', value: 0n },
+            retainerBalance,
           });
 
-          const stakeAmount = value - balance;
-          this.state.balance = value;
           if ((stakePlan.onReceipt || []).includes('stake')) {
-            const { validatorAddress } = this.state;
-            // XXX not prompt!!!
-            await vowTools.when(
-              remoteAccount.delegate(validatorAddress, {
-                denom: remoteDenom,
-                value: BigInt(stakeAmount),
-              }),
-            );
+            internal.stake(stakeAmount);
+          }
+        },
+        /** @param {bigint} stakeAmount */
+        async stake(stakeAmount) {
+          const {
+            stakePlan,
+            remoteDenom: denom,
+            remoteAccount,
+            validatorAddress,
+            balance: balancePre,
+          } = this.state;
+          const { storing } = this.facets;
+
+          // XXX not prompt!!!
+          await vowTools.when(
+            remoteAccount.delegate(validatorAddress, {
+              denom: denom,
+              value: BigInt(stakeAmount),
+            }),
+          );
+          const balance = balancePre - stakeAmount;
+          Object.assign(this.state, { balance });
+          storing.logEvent({
+            type: 'stake',
+            balance,
+            validator: validatorAddress.value,
+            denom,
+            quantity: stakeAmount,
+            retainerBalance,
+            ...planProps(stakePlan),
+          });
+        },
+        /** @param {DenomAmount[]} rewardsEstimated */
+        async onRewards(rewardsEstimated) {
+          const {
+            remoteAccount,
+            validatorAddress,
+            balance: balancePre,
+            remoteDenom: denom,
+            stakePlan,
+          } = this.state;
+          trace('estimated rewards', rewardsEstimated);
+
+          // XXX not prompt!!!
+          const [reward] = await vowTools.when(
+            remoteAccount.withdrawReward(validatorAddress),
+          );
+          const { storing, internal } = this.facets;
+          const balance = balancePre + reward.value;
+          Object.assign(this.state, { balance });
+          storing.logEvent({
+            type: 'claim',
+            balance,
+            denom,
+            retainerBalance,
+            ...planProps(stakePlan),
+          });
+
+          if ((stakePlan.onRewards || []).includes('restake')) {
+            internal.stake(reward.value);
           }
         },
       },
@@ -159,6 +224,7 @@ export const prepareStakeManagementKit = (zone, { zcf, vowTools }) => {
         async wake(ts) {
           trace('wake at', ts);
           const { remoteAccount, remoteDenom, balance, stakePlan } = this.state;
+          const { internal } = this.facets;
           // XXX not prompt!!!
           const actual = await vowTools.when(
             remoteAccount.getBalance(remoteDenom),
@@ -166,7 +232,17 @@ export const prepareStakeManagementKit = (zone, { zcf, vowTools }) => {
           actual.value >= balance ||
             Fail`who took tokens out??? ${actual.value} < ${balance}`;
           if (actual.value > balance && stakePlan.onReceipt) {
-            this.facets.internal.onReceive(actual.value);
+            internal.onReceive(actual.value);
+          }
+
+          const { validatorAddress } = this.state;
+
+          // XXX not prompt!!!
+          const rewards = await vowTools.when(
+            remoteAccount.getReward(validatorAddress),
+          );
+          if (rewards && rewards.find((r) => r.value > 0n)) {
+            internal.onRewards(rewards);
           }
         },
       },
