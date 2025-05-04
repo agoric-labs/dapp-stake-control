@@ -22,7 +22,8 @@ import { makeCustomer, makeWallet } from './stake-actors.js';
 const { entries } = Object;
 
 test('coreEval code without swingset', async (t) => {
-  const { bootstrap, utils } = await commonSetup(t);
+  const { bootstrap, utils, mocks } = await commonSetup(t);
+  mocks.ibcBridge.setAddressPrefix('osmosis');
   const { agoricNamesAdmin } = bootstrap;
   const wk = await makeWellKnownSpaces(agoricNamesAdmin);
   const log = () => {}; // console.log

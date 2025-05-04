@@ -122,3 +122,11 @@ export const PortfolioEventShape = M.any(); // TODO
 export const PUBLIC_TOPICS = {
   portfolio: ['Portfolio status', PortfolioEventShape],
 };
+
+/**
+ * @param {RemoteConfig} plan
+ */
+export const planProps = (plan) => ({
+  staking: (plan.onReceipt || []).includes('stake'),
+  restaking: (plan.onRewards || []).includes('restake'),
+});

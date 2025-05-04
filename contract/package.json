@@ -13,6 +13,7 @@
     "@agoric/cosmic-proto": "dev",
     "@agoric/ertp": "dev",
     "@agoric/fast-usdc": "dev",
+    "@agoric/swingset-vat": "dev",
     "@agoric/smart-wallet": "dev",
     "@agoric/vats": "dev",
     "@agoric/zoe": "dev",
