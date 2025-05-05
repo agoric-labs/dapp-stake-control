@@ -5,3 +5,7 @@ bundles
 startStakeManagement-permit.json
 startStakeManagement-plan.json
 startStakeManagement.js
+
+eval-register-interchain-bank-assets-permit.json
+eval-register-interchain-bank-assets-plan.json
+eval-register-interchain-bank-assets.js
