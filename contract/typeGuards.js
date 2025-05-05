@@ -18,6 +18,7 @@ import { M } from '@endo/patterns';
  * @typedef {{
  *   portfolioFee: Amount;
  *   commission?: Ratio,
+ *   validators: Record<string, Validator[]>;
  * }} StkCTerms
  */
 
@@ -52,6 +53,14 @@ export const RewardsAction = /** @type {const} */ ({
  * }} RemoteConfig
  *
  * @typedef {{ [chainName: string]: RemoteConfig}} PortfolioConfig
+ */
+
+/**
+ * @typedef {Object} Validator
+ * @property {string} moniker
+ * @property  {`${string}valoper1${string}`} operator_address
+ * @property {number} commission_rate
+ * @property {string} tokens
  */
 
 const { values } = Object;

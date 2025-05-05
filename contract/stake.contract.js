@@ -63,6 +63,7 @@ export const contract = async (
 ) => {
   console.log('Inside Contract');
   const terms = zcf.getTerms();
+
   console.log('Registering Chain and Assets....');
   registerChainsAndAssets(
     chainHub,
@@ -108,6 +109,7 @@ export const contract = async (
     makeStakeManagementKit,
     makeStorageKit,
     stores: pollStores,
+    validators: zcf.getTerms().validators,
   });
 
   const proposalShapes = makeProposalShapes(terms);

@@ -24,6 +24,7 @@ import { parseArgs } from 'node:util';
 import { makeAgd } from '../tools/agd-lib.js';
 import * as staticConfig from './info.js';
 import { getManifest, startStakeManagement } from './start-contract.js';
+import { fetchValidators } from './fetch-validators.js';
 
 /**
  * @import {CoreEvalBuilder, DeployScriptFunction} from '@agoric/deploy-script-support/src/externalTypes.js'
@@ -155,7 +156,12 @@ export default async (homeP, endowments) => {
   mustMatch(harden(chainDetails), M.recordOf(M.string(), CosmosChainInfoShape));
   const assetInfo = JSON.parse(staticConfig.assetInfo);
   mustMatch(harden(assetInfo), M.arrayOf([DenomShape, DenomDetailShape]));
+  const validators = await fetchValidators();
   await writeCoreEval(startStakeManagement.name, (opts) =>
-    defaultProposalBuilder(opts, { chainInfo: chainDetails, assetInfo }),
+    defaultProposalBuilder(opts, {
+      chainInfo: chainDetails,
+      assetInfo,
+      validators,
+    }),
   );
 };

@@ -13,6 +13,7 @@ import { E } from '@endo/far';
  * @import {StorageNode} from '@agoric/internal/src/lib-chainStorage.js';
  * @import {StartFn, StkCTerms} from '../../contract/stake.contract.js';
  * @import {TimerService} from '@agoric/time';
+ * @import {Validator} from 'staking-contract';
  */
 
 const trace = makeTracer('start StkC', true);
@@ -30,6 +31,7 @@ const trace = makeTracer('start StkC', true);
  *   options: {
  *     chainInfo: Record<string, CosmosChainInfo>;
  *     assetInfo: [Denom, DenomDetail & { brandKey?: string }][];
+ *     validators: Record<string, Validator[]>;
  *   };
  * }} config
  */
@@ -57,13 +59,14 @@ export const startStakeManagement = async (
       consume: { BLD, IST },
     },
   },
-  { options: { chainInfo, assetInfo } },
+  { options: { chainInfo, assetInfo, validators } },
 ) => {
   trace(startStakeManagement.name);
 
   /** @type {StkCTerms} */
   const terms = {
     portfolioFee: AmountMath.make(await bldBrandP, 10n * 1_000_000n),
+    validators,
   };
 
   const marshaller = await E(board).getReadonlyMarshaller();
