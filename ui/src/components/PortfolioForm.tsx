@@ -133,8 +133,8 @@ export default function PortfolioForm() {
 
       // TODO: get custom terms from vstorage
       const give = {
-        Fee: { brand: requiredBrand, value: 12n * 1000_000n },
-        Retainer: { brand: requiredBrand, value: 50n * 1000_000n },
+        Fee: { brand: brands['IST'], value: 3n * 1000_000n },
+        Retainer: { brand: brands['BLD'], value: 5n * 1000_000n },
       };
 
       const offerArgs: PortfolioConfig = {
