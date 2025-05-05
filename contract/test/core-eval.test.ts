@@ -18,6 +18,7 @@ import {
 import * as contractExports from '../stake.contract.js';
 import { commonSetup } from './fusdc-tools/supports.js';
 import { makeCustomer, makeWallet } from './stake-actors.js';
+import { validators } from './orch-tools/network-fakes.js';
 
 const { entries } = Object;
 
@@ -79,7 +80,9 @@ test('coreEval code without swingset', async (t) => {
 
   t.log('invoke coreEval');
   await t.notThrowsAsync(
-    startStakeManagement(powers, { options: { assetInfo: [], chainInfo: {} } }),
+    startStakeManagement(powers, {
+      options: { assetInfo: [], chainInfo: {}, validators },
+    }),
   );
 
   const { agoricNames } = bootstrap;

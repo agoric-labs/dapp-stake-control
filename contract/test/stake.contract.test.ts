@@ -2,12 +2,14 @@ import { test } from '@agoric/zoe/tools/prepare-test-env-ava.js';
 
 import { makeIssuerKit } from '@agoric/ertp';
 import { withAmountUtils } from '@agoric/zoe/tools/test-utils.js';
-import type { StkCTerms, start as startStake } from '../stake.contract.js';
+import type { start as startStake } from '../stake.contract.js';
+import type { StkCTerms } from 'staking-contract';
 import * as contractExports from '../stake.contract.js';
 import { commonSetup } from './fusdc-tools/supports.js';
 import { makeCustomer, makeWallet } from './stake-actors.js';
 import { startContract } from './supports.js';
 import { eventLoopIteration } from '@agoric/internal/src/testing-utils.js';
+import { validators } from './orch-tools/network-fakes.js';
 
 test('onboarding: create staking portfolio', async (t) => {
   const common = await commonSetup(t);
@@ -15,6 +17,7 @@ test('onboarding: create staking portfolio', async (t) => {
   const BLD = withAmountUtils(makeIssuerKit('BLD'));
   const customTerms: StkCTerms = harden({
     portfolioFee: BLD.make(20n),
+    validators,
   });
   const startKit = await startContract<typeof startStake>(contractExports, {
     terms: customTerms,
@@ -76,7 +79,7 @@ test('onboarding: create staking portfolio', async (t) => {
       },
       staking: true,
       type: 'stake',
-      validator: 'osmovaloper1TODODO',
+      validator: 'osmovaloper1q5xvvmf03dx8amz66ku6z0x4u39f0aphqf42wc',
     },
     {
       balance: '148',
@@ -100,7 +103,7 @@ test('onboarding: create staking portfolio', async (t) => {
       },
       staking: true,
       type: 'stake',
-      validator: 'osmovaloper1TODODO',
+      validator: 'osmovaloper1q5xvvmf03dx8amz66ku6z0x4u39f0aphqf42wc',
     },
   ]);
 });
