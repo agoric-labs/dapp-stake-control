@@ -12,10 +12,35 @@ const { entries } = Object;
  * @import { ZCFSeat } from '@agoric/zoe/src/zoeService/zoe.js';
  * @import {StorageNode} from '@agoric/internal/src/lib-chainStorage.js';
  * @import {MakeStakeManagementKit} from './staking-kit.js';
- * @import {PortfolioConfig, PollingFrequency} from './typeGuards.js'
+ * @import {PortfolioConfig, PollingFrequency, Validator} from './typeGuards.js'
  * @import {PortfolioEvent} from './types.js';
  * @import {PollingKit} from './polling-kit.js';
  */
+
+/**
+ * @typedef {Object} Validator
+ * @property {string} moniker
+ * @property {string} operator_address
+ * @property {number} commission_rate
+ * @property {string} tokens
+ */
+
+/**
+ * Select the best validator for a given chain using a filter function
+ * @param {string} chain - Chain name in lowercase (e.g., 'osmosis')
+ * @param {Record<string, Validator[]>} allValidators - Map of chain → validators
+ * @param {(v: Validator) => boolean} filterFn - Filter logic for picking a good validator
+ * @returns { `${string}valoper1${string}` | undefined} - The selected validator, or undefined if none match
+ */
+const selectBestValidatorForChain = (chain, allValidators, filterFn) => {
+  const validators = allValidators[chain];
+  if (!validators || validators.length === 0) return undefined;
+
+  const filtered = validators.filter(filterFn);
+  if (filtered.length === 0) return undefined;
+
+  return filtered[0].operator_address;
+};
 
 /**
  * @satisfies {OrchestrationFlow}
@@ -24,13 +49,14 @@ const { entries } = Object;
  *   makeStakeManagementKit: MakeStakeManagementKit;
  *   makeStorageKit: (id: bigint) => Promise<{node:StorageNode,path:string}>;
  *   stores: MapStore<PollingFrequency, PollingKit['store']>;
+ *   validators: Record<string, Validator[]>
  * }} ctx
  * @param {ZCFSeat} seat
  * @param {PortfolioConfig} offerArgs
  */
 export const makeStakingPortfolio = async (
   orch,
-  { makeStakeManagementKit, makeStorageKit, stores },
+  { makeStakeManagementKit, makeStorageKit, stores, validators },
   seat,
   offerArgs,
 ) => {
@@ -59,14 +85,26 @@ export const makeStakingPortfolio = async (
   const id = 123n; // TODO
   const { node, path } = await makeStorageKit(id);
 
+  const selectedValidator = selectBestValidatorForChain(
+    chainName,
+    validators,
+    (v) => {
+      return v.commission_rate <= 0.05 && parseInt(v.tokens) > 1_000_000;
+    },
+  );
+  trace('Validator Address:', selectedValidator);
+
+  if (!selectedValidator) {
+    Fail`No suitable validator found for ${chainName}`;
+    return;
+  }
+
   const stakeManagementKit = makeStakeManagementKit({
     remoteAccount,
     stakePlan: plan,
-    // TODO: get validatorAddress from user or from build-time config
     validatorAddress: {
       chainId,
-      // @ts-expect-error XXX TODO
-      value: `${bech32Prefix}valoper1TODODO`,
+      value: selectedValidator,
       encoding: 'bech32',
     },
     remoteDenom,

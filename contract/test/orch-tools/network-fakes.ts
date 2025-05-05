@@ -27,6 +27,7 @@ import { E, Far } from '@endo/far';
 import type { Guarded } from '@endo/exo';
 import { defaultMockAckMap, errorAcknowledgments } from './ibc-mocks.js';
 import { decodeProtobufBase64 } from '@agoric/orchestration/tools/protobuf-decoder.js';
+import type { Validator } from 'staking-contract';
 
 const trace = makeTracer('NetworkFakes');
 
@@ -386,4 +387,39 @@ export const setupFakeNetwork = (
     ibcVat,
     setupIBCProtocol,
   };
+};
+
+export const validators: Record<string, Validator[]> = {
+  osmosis: [
+    {
+      moniker: 'Meria',
+      operator_address: 'osmovaloper1q5xvvmf03dx8amz66ku6z0x4u39f0aphqf42wc',
+      commission_rate: 0.05,
+      tokens: '1192548202522',
+    },
+    {
+      moniker: 'Parakeet',
+      operator_address: 'osmovaloper1prmsfrgvla0u8x3kwc8k0mcqqve3h8y73d37nm',
+      commission_rate: 1,
+      tokens: '2824363105862',
+    },
+    {
+      moniker: ' AutoStake 🛡️ Slash Protected',
+      operator_address: 'osmovaloper1pxphtfhqnx9ny27d53z4052e3r76e7qq495ehm',
+      commission_rate: 0.05,
+      tokens: '1333135097973',
+    },
+    {
+      moniker: 'Cypher Core',
+      operator_address: 'osmovaloper1pjmngrwcsatsuyy8m3qrunaun67sr9x74vvvdk',
+      commission_rate: 0.1,
+      tokens: '787803690588',
+    },
+    {
+      moniker: 'OWALLET',
+      operator_address: 'osmovaloper1zqevmn000unnjj709akc8p86f9jc4xevf8f8g3',
+      commission_rate: 0.05,
+      tokens: '420161364478',
+    },
+  ],
 };

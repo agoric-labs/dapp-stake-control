@@ -97,7 +97,7 @@ export const protoMsgMocks = {
       MsgDelegate.toProtoMsg({
         delegatorAddress: 'osmosis1test',
         amount: { amount: '123', denom: 'uosmo' },
-        validatorAddress: 'osmovaloper1TODODO',
+        validatorAddress: 'osmovaloper1q5xvvmf03dx8amz66ku6z0x4u39f0aphqf42wc',
       }),
     ]),
     ack: buildMsgResponseString(MsgDelegateResponse, {}),
@@ -107,7 +107,7 @@ export const protoMsgMocks = {
       MsgDelegate.toProtoMsg({
         delegatorAddress: 'osmosis1test',
         amount: { amount: '25', denom: 'uosmo' },
-        validatorAddress: 'osmovaloper1TODODO',
+        validatorAddress: 'osmovaloper1q5xvvmf03dx8amz66ku6z0x4u39f0aphqf42wc',
       }),
     ]),
     ack: buildMsgResponseString(MsgDelegateResponse, {}),
@@ -136,7 +136,7 @@ export const protoMsgMocks = {
     msg: buildTxPacketString([
       MsgWithdrawDelegatorReward.toProtoMsg({
         delegatorAddress: 'osmosis1test',
-        validatorAddress: 'osmovaloper1TODODO',
+        validatorAddress: 'osmovaloper1q5xvvmf03dx8amz66ku6z0x4u39f0aphqf42wc',
       }),
     ]),
     ack: buildMsgResponseString(MsgWithdrawDelegatorRewardResponse, {
@@ -169,7 +169,7 @@ export const protoMsgMocks = {
     msg: buildQueryPacketString([
       QueryDelegationRewardsRequest.toProtoMsg({
         delegatorAddress: 'osmosis1test',
-        validatorAddress: 'osmovaloper1TODODO',
+        validatorAddress: 'osmovaloper1q5xvvmf03dx8amz66ku6z0x4u39f0aphqf42wc',
       }),
     ]),
     ack: buildQueryResponseString(QueryDelegationRewardsResponse, {
