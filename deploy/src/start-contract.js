@@ -116,6 +116,7 @@ export const startStakeManagement = async (
     privateArgs,
     terms,
   });
+  produceInstance.reset();
   produceInstance.resolve(instance);
   trace('done');
 };
