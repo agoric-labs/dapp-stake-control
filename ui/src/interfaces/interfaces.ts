@@ -22,5 +22,5 @@ export type ToastMessageOptions = {
   duration?: number;
 };
 
-export const chainOptions = ['Osmosis', 'Noble'] as const;
+export const chainOptions = ['Osmosis', 'Noble', 'Axelar'] as const;
 export type SupportedChain = (typeof chainOptions)[number];

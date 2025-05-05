@@ -95,11 +95,16 @@ export const startStakeManagement = async (
   //   E(agoricNames).lookup('issuer', 'OSMO')
   // );
 
+  const axlIssuer = await safeFulfill(() =>
+    E(agoricNames).lookup('issuer', 'AXL'),
+  );
+
   const issuerKeywordRecord = harden({
     BLD: await BLD,
     IST: await IST,
-    // ...(osmoIssuer && { OSMO: osmoIssuer }),
+    ...(axlIssuer && { AXL: axlIssuer }),
   });
+
   trace('issuerKeywordRecord', issuerKeywordRecord);
 
   trace('Starting contract instance');
