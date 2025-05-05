@@ -8,7 +8,7 @@ const { entries } = Object;
 
 /**
  * @import {MapStore} from '@agoric/store';
- * @import {Orchestrator, OrchestrationFlow, OrchestrationAccount, StakingAccountActions, StakingAccountQueries, CosmosChainInfo, CosmosChainAddress, Bech32Address} from '@agoric/orchestration';
+ * @import {Orchestrator, OrchestrationFlow, OrchestrationAccount, StakingAccountActions, StakingAccountQueries, CosmosChainInfo} from '@agoric/orchestration';
  * @import { ZCFSeat } from '@agoric/zoe/src/zoeService/zoe.js';
  * @import {StorageNode} from '@agoric/internal/src/lib-chainStorage.js';
  * @import {MakeStakeManagementKit} from './staking-kit.js';

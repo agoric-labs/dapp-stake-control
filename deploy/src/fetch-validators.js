@@ -11,14 +11,18 @@ const CHAIN_LCD_URLS = {
 
 /**
  * Fetch validators for a specific Cosmos-based chain
- * @param {string} chain - Must be lowercase and match keys in CHAIN_LCD_URLS
- * @param {string} status - Validator bonding status (default: BOND_STATUS_BONDED)
- * @returns {Promise<Array<Validator>>}
+ *
+ * @param {Object} options
+ * @param {string} options.chain - Must be lowercase and match keys in CHAIN_LCD_URLS
+ * @param {string} [options.status='BOND_STATUS_BONDED'] - Validator bonding status
+ * @param {typeof fetch} options.fetch - HTTP fetch function
+ * @returns {Promise<Validator[]>} - Promise resolving to an array of Validator objects
  */
-const fetchValidatorsForChain = async (
+const fetchValidatorsForChain = async ({
   chain,
   status = 'BOND_STATUS_BONDED',
-) => {
+  fetch,
+}) => {
   const lcdUrl = CHAIN_LCD_URLS[chain];
   if (!lcdUrl) throw new Error(`Unknown chain: ${chain}`);
 
@@ -49,7 +53,7 @@ export const fetchValidators = async () => {
 
   for (const chain of chainOptions) {
     try {
-      const validators = await fetchValidatorsForChain(chain);
+      const validators = await fetchValidatorsForChain({ chain, fetch });
       results[chain] = validators;
     } catch (err) {
       console.error(`Failed to fetch for ${chain}:`, err.message);
