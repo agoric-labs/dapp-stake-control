@@ -119,22 +119,17 @@ export default function PortfolioForm() {
     console.log('Form Submitted:', portfolioConfig);
 
     let toastId: string | number | null = null;
-    const brand = {
-      brandKey: 'BLD',
-      decimals: 6,
-    };
 
     try {
       if (!contractInstance) throw new Error('No contract instance');
       if (!brands) throw new Error('Brands not initialized');
       if (!wallet) throw new Error('Wallet not connected');
 
-      const requiredBrand = brands[brand.brandKey];
-
       // TODO: get custom terms from vstorage
       const give = {
-        Fee: { brand: brands['IST'], value: 3n * 1000_000n },
-        Retainer: { brand: brands['BLD'], value: 5n * 1000_000n },
+        Fee: { brand: brands.IST, value: 3n * 1000_000n },
+        // work around #54
+        // Retainer: { brand: brands['BLD'], value: 5n * 1000_000n },
       };
 
       const offerArgs: PortfolioConfig = {
