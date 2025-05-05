@@ -3,7 +3,11 @@ import type {
   PaymentPKeywordRecord,
   ZoeService,
 } from '@agoric/zoe';
-import type { PortfolioConfig, ProposalShapes } from '../typeGuards.js';
+import type {
+  PortfolioConfig,
+  ProposalShapes,
+  StkCTerms,
+} from '../typeGuards.js';
 import type { withAmountUtils } from '@agoric/zoe/tools/test-utils.js';
 import type { OfferSpec } from '@agoric/smart-wallet/src/offers.js';
 import type { ExecutionContext } from 'ava';
@@ -17,6 +21,7 @@ import { Fail } from '@endo/errors';
 import { executeOffer } from './supports.js';
 import type { Amount, Payment } from '@agoric/ertp';
 import type { makeStakingPortfolio } from '../stake.flows.js';
+import { E } from '@endo/far';
 
 export type InvitationMakerSpec<
   SF extends ContractStartFunction,
@@ -39,26 +44,39 @@ export interface WalletTool {
   >(
     spec: InvitationMakerSpec<SF, M>,
   );
-  deposit(p: Payment<'nat'>): Amount<'nat'>;
+  deposit(p: Payment<'nat'>): Promise<Amount<'nat'>>;
 }
 
+const { keys } = Object;
+
 export const makeWallet = (
-  asset: ReturnType<typeof withAmountUtils>,
+  assets: Record<'IST' | 'BLD', ReturnType<typeof withAmountUtils>>,
   zoe: ZoeService,
   when,
   initialBalance = 100,
 ): WalletTool => {
-  const purse = asset.issuer.makeEmptyPurse();
-  purse.deposit(asset.mint.mintPayment(asset.units(initialBalance)));
+  const purses = {
+    IST: assets.IST.issuer.makeEmptyPurse(),
+    BLD: assets.BLD.issuer.makeEmptyPurse(),
+  };
+  for (const k of keys(assets)) {
+    const purse = purses[k];
+    const { mint, units } = assets[k];
+    purse.deposit(mint.mintPayment(units(initialBalance)));
+  }
   /** @param {Brand} b */
   const providePurse = (b) =>
-    b === asset.brand ? purse : Fail`no purse for ${b}`;
+    purses[
+      keys(assets).find((k) => assets[k].brand === b) || Fail`no purse for ${b}`
+    ];
   const wallet: WalletTool = harden({
     async executeOffer(spec) {
       return executeOffer(zoe, when, spec, providePurse);
     },
-    deposit(p) {
-      return purse.deposit(p);
+    async deposit(pmt) {
+      const brand = await E(pmt).getAllegedBrand();
+      const purse = providePurse(brand);
+      return purse.deposit(pmt);
     },
   });
   return wallet;
@@ -67,8 +85,7 @@ export const makeWallet = (
 export const makeCustomer = (
   wallet: WalletTool,
   instance: Instance<StartFn>,
-  // XXX could get from terms
-  BLD: Pick<ReturnType<typeof withAmountUtils>, 'brand' | 'issuer' | 'units'>,
+  terms: StkCTerms,
 ) => {
   let nonce = 0;
 
@@ -87,9 +104,8 @@ export const makeCustomer = (
 
       const proposal: ProposalShapes['makePortfolio'] = harden({
         give: {
-          // XXX should get from terms
-          Fee: BLD.units(10),
-          Retainer: BLD.units(50),
+          Fee: terms.portfolioFee,
+          Retainer: terms.retainerMin,
         },
       });
 
