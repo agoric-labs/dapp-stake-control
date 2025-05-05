@@ -209,21 +209,28 @@ export default function PortfolioForm() {
         <div className="setting-row">
           <label>Polling Frequency:</label>
         </div>
-        <div className="button-group">
-          <button
-            type="button"
-            className={config.freq === 'daily' ? 'active' : ''}
-            onClick={() => handleFrequency('daily')}
-          >
+        <div className="radio-btn-group">
+          <label className={config.freq === 'daily' ? 'active' : ''}>
+            <input
+              type="radio"
+              name="frequency"
+              value="daily"
+              checked={config.freq === 'daily'}
+              onChange={() => handleFrequency('daily')}
+            />
             Daily
-          </button>
-          <button
-            type="button"
-            className={config.freq === 'weekly' ? 'active' : ''}
-            onClick={() => handleFrequency('weekly')}
-          >
+          </label>
+
+          <label className={config.freq === 'weekly' ? 'active' : ''}>
+            <input
+              type="radio"
+              name="frequency"
+              value="weekly"
+              checked={config.freq === 'weekly'}
+              onChange={() => handleFrequency('weekly')}
+            />
             Weekly
-          </button>
+          </label>
         </div>
 
         <label className="setting-row">
