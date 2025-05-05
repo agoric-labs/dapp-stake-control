@@ -7,7 +7,7 @@ export type Wallet = Awaited<ReturnType<typeof makeAgoricWalletConnection>>;
 export interface AppState {
   wallet: Wallet | null;
   contractInstance?: unknown;
-  brands?: Record<string, unknown> | null;
+  brands?: Record<string, Brand> | null;
   loading: boolean;
   error?: string;
   tab: number;
