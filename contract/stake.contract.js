@@ -109,7 +109,7 @@ export const contract = async (
     makeStakeManagementKit,
     makeStorageKit,
     stores: pollStores,
-    validators: zcf.getTerms().validators,
+    validators: terms.validators,
   });
 
   const proposalShapes = makeProposalShapes(terms);

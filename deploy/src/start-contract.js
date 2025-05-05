@@ -71,6 +71,7 @@ export const startStakeManagement = async (
     retainerMin: AmountMath.make(await bldBrandP, 1n),
     validators,
   };
+  trace('terms', terms);
 
   const marshaller = await E(board).getReadonlyMarshaller();
 
@@ -118,7 +119,8 @@ export const startStakeManagement = async (
   });
   produceInstance.reset();
   produceInstance.resolve(instance);
-  trace('done');
+  const id = await E(board).getId(instance);
+  trace('done', instance, id);
 };
 harden(startStakeManagement);
 
