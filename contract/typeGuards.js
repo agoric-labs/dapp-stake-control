@@ -16,7 +16,8 @@ import { M } from '@endo/patterns';
 
 /**
  * @typedef {{
- *   portfolioFee: Amount;
+ *   portfolioFee: Amount<'nat'>;
+ *   retainerMin: Amount<'nat'>;
  *   commission?: Ratio,
  *   validators: Record<string, Validator[]>;
  * }} StkCTerms
@@ -81,7 +82,7 @@ export const PortfolioConfigShape = M.recordOf(M.string(), RemoteConfigShape);
 
 /** @type {TypedPattern<StkCTerms>} */
 export const customTermsShape = M.splitRecord(
-  { portfolioFee: AmountShape },
+  { portfolioFee: AmountShape, retainerMin: AmountShape },
   { commission: RatioShape },
 );
 harden(customTermsShape);
@@ -109,20 +110,13 @@ harden(privateArgsShape);
  * }} ProposalShapes
  */
 
-/**
- * @param {Brand} brand
- * @param {NatValue} [min]
- */
-const makeAmountShape = (brand, min = undefined) =>
-  harden({ brand, value: typeof min === 'undefined' ? M.nat() : M.gte(min) });
-
 /** @param {StkCTerms} ct */
 export const makeProposalShapes = (ct) => {
   return harden({
     makePortfolio: M.splitRecord({
       give: M.splitRecord(
         { Fee: M.gte(ct.portfolioFee) },
-        { Retainer: makeAmountShape(ct.portfolioFee.brand) },
+        { Retainer: M.gte(ct.retainerMin) },
       ),
     }),
   });

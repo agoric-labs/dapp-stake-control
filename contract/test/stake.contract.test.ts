@@ -14,30 +14,32 @@ import { validators } from './orch-tools/network-fakes.js';
 test('onboarding: create staking portfolio', async (t) => {
   const common = await commonSetup(t);
   common.mocks.ibcBridge.setAddressPrefix('osmosis');
+  const IST = withAmountUtils(makeIssuerKit('IST'));
   const BLD = withAmountUtils(makeIssuerKit('BLD'));
   const customTerms: StkCTerms = harden({
-    portfolioFee: BLD.make(20n),
+    portfolioFee: IST.make(2n),
+    retainerMin: BLD.make(1n),
     validators,
   });
   const startKit = await startContract<typeof startStake>(contractExports, {
     terms: customTerms,
-    issuers: { BLD: BLD.issuer },
+    issuers: { BLD: BLD.issuer, IST: IST.issuer },
     privateArgs: common.commonPrivateArgs,
   });
   const { instance, zoe } = startKit;
 
   const { vowTools } = common.utils;
-  const wallet = makeWallet(BLD, zoe, vowTools.when);
-  const silvia = makeCustomer(wallet, instance, BLD);
+  const wallet = makeWallet({ IST, BLD }, zoe, vowTools.when);
+  const silvia = makeCustomer(wallet, instance, customTerms);
 
   const { result, payouts } = await silvia.makePortfolio(t);
   if (result === null || typeof result !== 'object') {
     throw t.is(typeof result, 'object');
   }
   t.deepEqual(Object.keys(result), ['invitationMakers', 'publicSubscribers']);
-  const refund = wallet.deposit(await payouts.Fee);
+  const refund = await wallet.deposit(await payouts.Fee);
   t.log('TODO: contract should consume fee', refund);
-  t.deepEqual(refund, BLD.units(10));
+  t.deepEqual(refund, customTerms.portfolioFee);
 
   t.log(result.publicSubscribers);
   const { storagePath } = result.publicSubscribers.portfolio;
@@ -53,7 +55,7 @@ test('onboarding: create staking portfolio', async (t) => {
     {
       restaking: true,
       // XXX marshal brands, bigints
-      retainerBalance: { brand: {}, value: '50000000' },
+      retainerBalance: { brand: {}, value: '1' },
       staking: true,
       type: 'opened',
     },

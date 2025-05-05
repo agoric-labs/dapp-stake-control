@@ -11,7 +11,8 @@ import { E } from '@endo/far';
  * @import {Installation, Instance} from '@agoric/zoe/src/zoeService/utils.js';
  * @import {CosmosChainInfo, Denom, DenomDetail} from '@agoric/orchestration';
  * @import {StorageNode} from '@agoric/internal/src/lib-chainStorage.js';
- * @import {StartFn, StkCTerms} from '../../contract/stake.contract.js';
+ * @import {StartFn} from '../../contract/stake.contract.js';
+ * @import {StkCTerms} from '../../contract/typeGuards.js';
  * @import {TimerService} from '@agoric/time';
  * @import {Validator} from 'staking-contract';
  */
@@ -47,7 +48,7 @@ export const startStakeManagement = async (
       startUpgradable,
     },
     brand: {
-      consume: { BLD: bldBrandP },
+      consume: { BLD: bldBrandP, IST: istBrandP },
     },
     installation: {
       consume: { StkC },
@@ -65,7 +66,9 @@ export const startStakeManagement = async (
 
   /** @type {StkCTerms} */
   const terms = {
-    portfolioFee: AmountMath.make(await bldBrandP, 10n * 1_000_000n),
+    // XXX work-around same-brand smart wallet bug #11341
+    portfolioFee: AmountMath.make(await istBrandP, 2n * 1_000_000n),
+    retainerMin: AmountMath.make(await bldBrandP, 1n),
     validators,
   };
 
@@ -131,7 +134,7 @@ export const getManifest = ({ restoreRef }, { installationRef, options }) => {
           localchain: true,
           startUpgradable: true,
         },
-        brand: { consume: { BLD: true } },
+        brand: { consume: { BLD: true, IST: true } },
         installation: {
           consume: { StkC: true },
         },

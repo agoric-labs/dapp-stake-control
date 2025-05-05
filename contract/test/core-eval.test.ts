@@ -34,6 +34,7 @@ test('coreEval code without swingset', async (t) => {
   const { zoe: zoeAny, bundleAndInstall } = await setUpZoeForTest();
   const zoe: ZoeService = zoeAny;
   const BLD = withAmountUtils(makeIssuerKit('BLD'));
+  const IST = withAmountUtils(makeIssuerKit('IST'));
 
   {
     t.log('produce bootstrap entries from commonSetup()');
@@ -49,12 +50,6 @@ test('coreEval code without swingset', async (t) => {
           produce[n].resolve(v);
       }
     }
-
-    const IST = await (async () => {
-      const issuer = await E(zoe).getFeeIssuer();
-      const brand = await E(issuer).getBrand();
-      return harden({ issuer, brand });
-    })();
 
     for (const [name, { brand, issuer }] of entries({ BLD, IST })) {
       t.log('produce brand, issuer for', name);
@@ -92,12 +87,14 @@ test('coreEval code without swingset', async (t) => {
   )) as Instance<contractExports.StartFn>;
   t.log('found StkC instance', instance);
   t.is(passStyleOf(instance), 'remotable');
+  const terms = await E(zoe).getTerms(instance);
+  t.log('terms', terms);
 
   const { vowTools } = utils;
-  const wallet = makeWallet(BLD, zoe, vowTools.when);
-  const silvia = makeCustomer(wallet, instance, BLD);
+  const wallet = makeWallet({ IST, BLD }, zoe, vowTools.when);
+  const silvia = makeCustomer(wallet, instance, terms);
   const { payouts } = await silvia.makePortfolio(t);
-  const refund = wallet.deposit(await payouts.Fee);
+  const refund = await wallet.deposit(await payouts.Fee);
   t.log('TODO: contract should consume fee', refund);
-  t.deepEqual(refund, BLD.units(10));
+  t.deepEqual(refund, terms.portfolioFee);
 });
