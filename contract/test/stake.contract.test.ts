@@ -3,13 +3,15 @@ import { test } from '@agoric/zoe/tools/prepare-test-env-ava.js';
 import { makeIssuerKit } from '@agoric/ertp';
 import { withAmountUtils } from '@agoric/zoe/tools/test-utils.js';
 import type { start as startStake } from '../stake.contract.js';
-import type { StkCTerms } from 'staking-contract';
+import { makeProposalShapes, type StkCTerms } from 'staking-contract';
 import * as contractExports from '../stake.contract.js';
 import { commonSetup } from './fusdc-tools/supports.js';
 import { makeCustomer, makeWallet } from './stake-actors.js';
 import { startContract } from './supports.js';
 import { eventLoopIteration } from '@agoric/internal/src/testing-utils.js';
 import { validators } from './orch-tools/network-fakes.js';
+import { q } from '@endo/errors';
+import { makeMarshal } from '@endo/marshal';
 
 test('onboarding: create staking portfolio', async (t) => {
   const common = await commonSetup(t);
@@ -108,4 +110,23 @@ test('onboarding: create staking portfolio', async (t) => {
       validator: 'osmovaloper1q5xvvmf03dx8amz66ku6z0x4u39f0aphqf42wc',
     },
   ]);
+});
+
+test('print pattern', (t) => {
+  const IST = withAmountUtils(makeIssuerKit('IST'));
+  const BLD = withAmountUtils(makeIssuerKit('BLD'));
+  const customTerms: StkCTerms = harden({
+    portfolioFee: IST.make(2n * 1_000_000n),
+    retainerMin: BLD.make(1n),
+    validators,
+  });
+  const shapes = makeProposalShapes(customTerms);
+
+  const { toCapData } = makeMarshal(undefined, undefined, {
+    serializeBodyFormat: 'smallcaps',
+  });
+  const capData = toCapData(shapes);
+  const printed = JSON.stringify(JSON.parse(capData.body.slice(1)), null, 2);
+  t.log('shape', printed);
+  t.pass();
 });
